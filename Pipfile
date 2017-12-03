@@ -1,0 +1,17 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+click = "*"
+prometheus_client = "*"
+hjson = "*"
+inotify = "*"
+
+
+[dev-packages]
+
