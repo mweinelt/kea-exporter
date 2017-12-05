@@ -150,10 +150,64 @@ class KeaExporter:
                     'operation': 'discover'
                 }
             },
+            'pkt4-offer-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'offer'
+                }
+            },
             'pkt4-request-received': {
                 'metric': 'received_packets',
                 'labels': {
                     'operation': 'request'
+                }
+            },
+            'pkt4-ack-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'ack'
+                }
+            },
+            'pkt4-nak-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'nak'
+                }
+            },
+            'pkt4-release-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'release'
+                }
+            },
+            'pkt4-decline-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'decline'
+                }
+            },
+            'pkt4-inform-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'inform'
+                }
+            },
+            'pkt4-unknown-received': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'unknown'
+                }
+            },
+            'pkt4-parse-failed': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'parse-failed'
+                }
+            },
+            'pkt4-receive-drop': {
+                'metric': 'received_packets',
+                'labels': {
+                    'operation': 'drop'
                 }
             },
 
@@ -276,7 +330,7 @@ class KeaExporter:
             'pkt6-parse-failed': {
                 'metric': 'receoved_packets',
                 'labels': {
-                    'operation': 'parsee-failed'
+                    'operation': 'parse-failed'
                 },
             },
             'pkt6-solicit-received': {
