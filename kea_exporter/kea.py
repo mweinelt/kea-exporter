@@ -38,11 +38,11 @@ class KeaExporter:
         self.metrics_dhcp4_map = None
         self.metrics_dhcp4_ignore = None
         self.setup_dhcp4_metrics()
-        self.setup_dhcp6_metrics()
 
         self.metrics_dhcp6 = None
         self.metrics_dhcp6_map = None
         self.metrics_dhcp6_ignore = None
+        self.setup_dhcp6_metrics()
 
         # kea config
         self.config_path = config_path
