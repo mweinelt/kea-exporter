@@ -1,0 +1,7 @@
+0.2.0:
+ - Added support for DHCP6 metrics (tested with Kea 1.1.0)
+
+0.1.0:
+ - Added support for DHCP4 metrics (tested with Kea 1.1.0)
+ - Parse configuration for socket and subnet information
+ - Reload configuration on modification

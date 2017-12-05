@@ -14,12 +14,24 @@ The latest stable version can be installed from PyPi:
     $ pip install kea-exporter
 
 
+and upgraded with:
+
+::
+
+    $ pip install --upgrade kea-exporter
+
 Features
 --------
 
-- DHCP4 Metrics (tested against Kea 1.1.0 only for now)
+- DHCP4 & DHCP6 Metrics (tested against Kea 1.1.0 only)
 - Querying via control sockets
 - Automatic config reload (through inotify)
+
+
+Known Limitations
+-----------------
+
+- Include statements in Kea's configuration file are unsupported
 
 
 Usage

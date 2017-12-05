@@ -19,7 +19,7 @@ class KeaExporter:
     subnet_pattern = re.compile(
         r"subnet\[(?P<subnet_idx>[\d]+)\]\.(?P<metric>[\w-]+)")
 
-    def __init__(self, config_path='/etc/kea/kea-dhcp4.conf'):
+    def __init__(self, config_path):
         # kea control socket
         self.sock_dhcp6 = None
         self.sock_dhcp6_path = None
@@ -69,8 +69,8 @@ class KeaExporter:
             click.echo('Dhcp4.control-socket.socket-name not configured, '
                        'will not be exporting Dhcp4 metrics', file=sys.stderr)
         except FileNotFoundError:
-            click.echo('Dhcp4 control socket configured, but it does not exist.'
-                       ' Is Kea running?', file=sys.stderr)
+            click.echo('Dhcp4 control socket configured, but it does not '
+                       'exist. Is Kea running?', file=sys.stderr)
 
         try:
             sock6_path = self.config['Dhcp6']['control-socket']['socket-name']
@@ -82,8 +82,8 @@ class KeaExporter:
             click.echo('Dhcp6.control-socket.socket-name not configured, '
                        'will not be exporting Dhcp6 metrics', file=sys.stderr)
         except FileNotFoundError:
-            click.echo('Dhcp6 control socket configured, but it does not exist.'
-                       ' Is Kea running?', file=sys.stderr)
+            click.echo('Dhcp6 control socket configured, but it does not '
+                       'exist. Is Kea running?', file=sys.stderr)
 
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
@@ -107,7 +107,8 @@ class KeaExporter:
                 'Declined counts',
                 ['subnet']),
             'addresses_declined_reclaimed_total': Gauge(
-                '{0}_addresses_declined_reclaimed_total'.format(self.prefix_dhcp4),
+                '{0}_addresses_declined_reclaimed_total'.format(
+                    self.prefix_dhcp4),
                 'Declined addresses that were reclaimed',
                 ['subnet']),
             'addresses_reclaimed_total': Gauge(
