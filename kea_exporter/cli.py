@@ -6,7 +6,7 @@ from prometheus_client import start_http_server
 from .kea import KeaExporter
 
 
-@click.group()
+@click.command()
 @click.argument('config')
 @click.option('--address', default='0.0.0.0', help='Specify the address to bind against.')
 @click.option('--port', type=int, default=9547, help='Specify the port on which to listen.')
