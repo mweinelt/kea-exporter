@@ -1,3 +1,6 @@
+0.2.2:
+ - Added another aggregate metric to ignored metrics
+
 0.2.1:
  - Added missing DHCP4 metrics (verified against Kea documentation)
 
