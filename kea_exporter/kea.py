@@ -239,6 +239,7 @@ class KeaExporter:
             # sums of subnet values
             'declined-addresses',
             'declined-reclaimed-addresses',
+            'reclaimed-declined-addresses',
             'reclaimed-leases'
         ]
 
@@ -448,6 +449,7 @@ class KeaExporter:
             # sums of subnet values
             'declined-addresses',
             'declined-reclaimed-addresses',
+            'reclaimed-declined-addresses',
             'reclaimed-leases'
         ]
 
