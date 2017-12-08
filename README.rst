@@ -23,7 +23,7 @@ and upgraded with:
 Features
 --------
 
-- DHCP4 & DHCP6 Metrics (tested against Kea 1.1.0 only)
+- DHCP4 & DHCP6 Metrics (tested against Kea 1.3.0)
 - Querying via control sockets
 - Automatic config reload (through inotify)
 

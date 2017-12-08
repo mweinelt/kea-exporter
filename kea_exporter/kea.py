@@ -1,3 +1,4 @@
+import os
 import re
 import socket
 import sys
@@ -19,15 +20,15 @@ class KeaExporter:
     subnet_pattern = re.compile(
         r"subnet\[(?P<subnet_idx>[\d]+)\]\.(?P<metric>[\w-]+)")
 
+    msg_statistics_all = bytes(
+        json.dumpsJSON({'command': 'statistic-get-all'}), 'utf-8')
+
     def __init__(self, config_path):
         # kea control socket
         self.sock_dhcp6 = None
         self.sock_dhcp6_path = None
         self.sock_dhcp4 = None
         self.sock_dhcp4_path = None
-
-        self.msg_statistics_all = bytes(
-            json.dumpsJSON({'command': 'statistic-get-all'}), 'utf-8')
 
         # prometheus
         self.prefix = 'kea'
@@ -60,30 +61,42 @@ class KeaExporter:
             self.config = json.load(handle)
 
         try:
-            sock4_path = self.config['Dhcp4']['control-socket']['socket-name']
-            self.sock_dhcp4 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock_dhcp4.connect(sock4_path)
-            click.echo('connected to Dhcp4 control socket at {}.'.format(
-                sock4_path))
+            sock_path = self.config['Dhcp4']['control-socket']['socket-name']
+            if not os.access(sock_path, os.F_OK):
+                raise FileNotFoundError()
+            if not os.access(sock_path, os.R_OK | os.W_OK):
+                raise PermissionError()
+            self.sock_dhcp4_path = sock_path
         except KeyError:
             click.echo('Dhcp4.control-socket.socket-name not configured, '
                        'will not be exporting Dhcp4 metrics', file=sys.stderr)
         except FileNotFoundError:
-            click.echo('Dhcp4 control socket configured, but it does not '
+            click.echo('Dhcp4 control-socket configured, but it does not '
                        'exist. Is Kea running?', file=sys.stderr)
+            sys.exit(1)
+        except PermissionError:
+            click.echo('Dhcp4 control-socket is not read-/writeable.',
+                       file=sys.stderr)
+            sys.exit(1)
 
         try:
-            sock6_path = self.config['Dhcp6']['control-socket']['socket-name']
-            self.sock_dhcp6 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock_dhcp6.connect(sock6_path)
-            click.echo('connected to Dhcp6 control socket at {}.'.format(
-                sock6_path))
+            sock_path = self.config['Dhcp6']['control-socket']['socket-name']
+            if not os.access(sock_path, os.F_OK):
+                raise FileNotFoundError()
+            if not os.access(sock_path, os.R_OK | os.W_OK):
+                raise PermissionError()
+            self.sock_dhcp6_path = sock_path
         except KeyError:
             click.echo('Dhcp6.control-socket.socket-name not configured, '
                        'will not be exporting Dhcp6 metrics', file=sys.stderr)
         except FileNotFoundError:
-            click.echo('Dhcp6 control socket configured, but it does not '
+            click.echo('Dhcp6 control-socket configured, but it does not '
                        'exist. Is Kea running?', file=sys.stderr)
+            sys.exit(1)
+        except PermissionError:
+            click.echo('Dhcp6 control-socket is not read-/writeable.',
+                       file=sys.stderr)
+            sys.exit(1)
 
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
@@ -464,20 +477,19 @@ class KeaExporter:
             click.echo('Config was modified, reloading...', file=sys.stderr)
             self.load_config()
 
-        if self.sock_dhcp4:
-            self.sock_dhcp4.send(self.msg_statistics_all)
-            response = self.sock_dhcp4.recv(4096).decode()
-            self.parse_metrics(json.loads(response), Module.DHCP4)
+        for sock_path, module in [(self.sock_dhcp4_path, Module.DHCP4),
+                                  (self.sock_dhcp6_path, Module.DHCP6)]:
+            if sock_path is None:
+                continue
 
-        if self.sock_dhcp6:
-            self.sock_dhcp6.send(self.msg_statistics_all)
-            response = self.sock_dhcp6.recv(4096).decode()
-            self.parse_metrics(json.loads(response), Module.DHCP6)
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.connect(sock_path)
+                sock.send(KeaExporter.msg_statistics_all)
+                response = sock.recv(8192).decode()
+                self.parse_metrics(json.loads(response), module)
 
     def parse_metrics(self, response, module):
-        args = response['arguments']
-
-        for key, data in args.items():
+        for key, data in response['arguments'].items():
             if module is Module.DHCP4:
                 if key in self.metrics_dhcp4_ignore:
                     continue
