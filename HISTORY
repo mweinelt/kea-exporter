@@ -1,3 +1,7 @@
+0.3.1
+ - Update inotify dependency to resolve type mismatch because of
+   an API change in 0.2.9
+
 0.3.0:
  - Add support for Kea 1.3.0 control socket behaviour changes
 
