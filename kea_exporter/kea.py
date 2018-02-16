@@ -51,7 +51,7 @@ class KeaExporter:
 
         self.inotify = inotify.adapters.Inotify()
         self.inotify.add_watch(
-            bytes(config_path, 'utf-8'), mask=inotify.constants.IN_MODIFY
+            config_path, mask=inotify.constants.IN_MODIFY
         )
 
         self.load_config()
