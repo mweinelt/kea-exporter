@@ -18,7 +18,7 @@ class Module(Enum):
 
 class KeaExporter:
     subnet_pattern = re.compile(
-        r"subnet\[(?P<subnet_idx>[\d]+)\]\.(?P<metric>[\w-]+)")
+        r"subnet\[(?P<subnet_id>[\d]+)\]\.(?P<metric>[\w-]+)")
 
     msg_statistics_all = bytes(
         json.dumpsJSON({'command': 'statistic-get-all'}), 'utf-8')
@@ -48,6 +48,8 @@ class KeaExporter:
         # kea config
         self.config_path = config_path
         self.config = None
+        self.config_subnet4_cache = {}
+        self.config_subnet6_cache = {}
 
         self.inotify = inotify.adapters.Inotify()
         self.inotify.add_watch(
@@ -97,6 +99,27 @@ class KeaExporter:
             click.echo('Dhcp6 control-socket is not read-/writeable.',
                        file=sys.stderr)
             sys.exit(1)
+
+        self.config_subnet4_cache = {}
+        self.config_subnet6_cache = {}
+
+    def lookup_subnet(self, module, subnet_id):
+        if module is Module.DHCP4:
+            cache = self.config_subnet4_cache
+            subnets = self.config['Dhcp4']['subnet4']
+        else:
+            cache = self.config_subnet6_cache
+            subnets = self.config['Dhcp6']['subnet6']
+
+        if subnet_id in cache:
+            return subnets[cache[subnet_id]]
+
+        for i,v in enumerate(subnets):
+            if subnet_id == v.get('id', i+1):
+                cache[subnet_id] = i
+                return v
+
+        return None
 
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
@@ -504,14 +527,14 @@ class KeaExporter:
             if key.startswith('subnet['):
                 match = self.subnet_pattern.match(key)
                 if match:
-                    subnet_idx = int(match.group('subnet_idx')) - 1
+                    subnet_id = int(match.group('subnet_id'))
                     key = match.group('metric')
-
-                    if module is Module.DHCP4:
-                        subnet = self.config['Dhcp4']['subnet4'][subnet_idx]
+                    subnet = self.lookup_subnet(module, subnet_id)
+                    if subnet:
+                        labels['subnet'] = subnet['subnet']
                     else:
-                        subnet = self.config['Dhcp6']['subnet6'][subnet_idx]
-                    labels['subnet'] = subnet['subnet']
+                        click.echo('subnet not found for metric: {0}'.format(
+                            key), file=sys.stderr)
                 else:
                     click.echo('subnet pattern failed for metric: {0}'.format(
                         key), file=sys.stderr)
