@@ -39,6 +39,6 @@ setup(
     install_requires=required,
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['kea-exporter=kea_exporter:cli']
+        'console_scripts': ['kea-exporter=kea_exporter.__main__:cli']
     },
 )
