@@ -1,3 +1,6 @@
+0.3.2
+ - Drop CLI include in __init__.py, fixes package installation
+
 0.3.1
  - Update inotify dependency to resolve type mismatch because of
    an API change in 0.2.9
