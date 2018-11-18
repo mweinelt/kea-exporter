@@ -1,3 +1,6 @@
+0.3.3
+ - Fix script entrypoint
+
 0.3.2
  - Drop CLI include in __init__.py, fixes package installation
 
