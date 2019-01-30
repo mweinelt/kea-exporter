@@ -55,8 +55,8 @@ Configure Control Socket
 The exporter uses Kea's control socket and the ``statistic-get-all`` request. Consult the documentation on how to set up
 the control socket:
 
-- http://kea.isc.org/docs/kea-guide.html#dhcp4-ctrl-channel
-- http://kea.isc.org/docs/kea-guide.html#dhcp6-ctrl-channel
+- https://jenkins.isc.org/job/Kea_doc/guide/kea-guide.html#dhcp4-ctrl-channel
+- https://jenkins.isc.org/job/Kea_doc/guide/kea-guide.html#dhcp6-ctrl-channel
 
 Permissions
 ///////////
