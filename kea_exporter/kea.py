@@ -467,6 +467,7 @@ class KeaExporter:
         ]
 
     def update(self):
+        BUFF_SIZE = 1024
         reload_config = False
         for event in self.inotify.event_gen():
             if not event:
@@ -485,7 +486,13 @@ class KeaExporter:
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
                 sock.connect(sock_path)
                 sock.send(KeaExporter.msg_statistics_all)
-                response = sock.recv(8192).decode()
+                response = ''
+                while True:
+                    part = sock.recv(BUFF_SIZE).decode()
+                    response += part
+                    if len(part) <  BUFF_SIZE:
+                        break
+                
                 self.parse_metrics(json.loads(response), module)
 
     def parse_metrics(self, response, module):
