@@ -511,13 +511,13 @@ class KeaExporter:
             if key.startswith('subnet['):
                 match = self.subnet_pattern.match(key)
                 if match:
-                    subnet_idx = int(match.group('subnet_idx')) - 1
+                    subnet_idx = int(match.group('subnet_idx'))
                     key = match.group('metric')
 
                     if module is Module.DHCP4:
-                        subnet = self.config['Dhcp4']['subnet4'][subnet_idx]
+                        subnet = next(item for item in self.config['Dhcp4']['subnet4'] if item["id"] == subnet_idx)
                     else:
-                        subnet = self.config['Dhcp6']['subnet6'][subnet_idx]
+                        subnet = next(item for item in self.config['Dhcp6']['subnet4'] if item["id"] == subnet_idx)
                     labels['subnet'] = subnet['subnet']
                 else:
                     click.echo('subnet pattern failed for metric: {0}'.format(
