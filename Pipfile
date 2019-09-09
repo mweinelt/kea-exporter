@@ -9,8 +9,6 @@ name = "pypi"
 
 click = "*"
 prometheus_client = "*"
-hjson = "*"
-inotify = "*"
 
 
 [dev-packages]

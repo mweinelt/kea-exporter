@@ -1,3 +1,9 @@
+0.4.0
+ - Kea-exporter now consumes control sockets instead of config paths
+ - The configuration is being queried from the control socket, allowing
+   for more complex configurations, like those using includes.
+ - Use makefile() to read from socket, thereby supporting larger setups
+
 0.3.3
  - Fix script entrypoint
 

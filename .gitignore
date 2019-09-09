@@ -1,3 +1,5 @@
+*.socket
+
 build
 dist
 *.egg-info
@@ -5,4 +7,5 @@ dist
 *.swp
 .ropeproject
 .idea/
+venv/
 Pipfile.lock
