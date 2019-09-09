@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import socket
@@ -5,35 +6,82 @@ import sys
 from enum import Enum
 
 import click
-import hjson as json
-import inotify.adapters
-import inotify.constants
 from prometheus_client import Gauge
 
 
-class Module(Enum):
+class DHCPVersion(Enum):
     DHCP4 = 1
     DHCP6 = 2
 
 
+class KeaSocket:
+    def __init__(self, sock_path):
+        try:
+            if not os.access(sock_path, os.F_OK):
+                raise FileNotFoundError()
+            if not os.access(sock_path, os.R_OK | os.W_OK):
+                raise PermissionError()
+            self.sock_path = os.path.abspath(sock_path)
+        except FileNotFoundError:
+            click.echo(f'Socket at {sock_path} does not exist. Is Kea running?', file=sys.stderr)
+            sys.exit(1)
+        except PermissionError:
+            click.echo(f'Socket at {sock_path} is not read-/writeable.', file=sys.stderr)
+            sys.exit(1)
+
+        self.version = None
+        self.config = None
+        self.subnets = None
+        self.subnet_missing_info_sent = []
+        self.dhcp_version = None
+
+    def query(self, command):
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.connect(self.sock_path)
+            sock.send(bytes(json.dumps({'command': command}), 'utf-8'))
+            response = json.loads(sock.makefile().read(-1))
+
+        if response['result'] != 0:
+            raise ValueError
+
+        return response
+
+    def stats(self):
+        # I don't currently know how to detect a changed configuration, so
+        # unfortunately we're reloading more often now as a workaround.
+        self.reload()
+
+        return self.query('statistic-get-all')
+
+    def reload(self):
+        self.config = self.query('config-get')['arguments']
+
+        if 'Dhcp4' in self.config:
+            self.dhcp_version = DHCPVersion.DHCP4
+            subnets = self.config['Dhcp4']['subnet4']
+        elif 'Dhcp6' in self.config:
+            self.dhcp_version = DHCPVersion.DHCP6
+            subnets = self.config['Dhcp6']['subnet6']
+        else:
+            click.echo(f'Socket {self.sock_path} has no supported configuration', file=sys.stderr)
+            sys.exit(1)
+
+        # create subnet map
+        self.subnets = {subnet['id']: subnet for subnet in subnets}
+
+
 class KeaExporter:
     subnet_pattern = re.compile(
-        r"subnet\[(?P<subnet_idx>[\d]+)\]\.(?P<metric>[\w-]+)")
+        r"subnet\[(?P<subnet_id>[\d]+)\]\.(?P<metric>[\w-]+)")
 
-    msg_statistics_all = bytes(
-        json.dumpsJSON({'command': 'statistic-get-all'}), 'utf-8')
-
-    def __init__(self, config_path):
-        # kea control socket
-        self.sock_dhcp6 = None
-        self.sock_dhcp6_path = None
-        self.sock_dhcp4 = None
-        self.sock_dhcp4_path = None
+    def __init__(self, kea_instances):
+        # kea instances
+        self.kea_instances = kea_instances
 
         # prometheus
         self.prefix = 'kea'
-        self.prefix_dhcp4 = '{0}_dhcp4'.format(self.prefix)
-        self.prefix_dhcp6 = '{0}_dhcp6'.format(self.prefix)
+        self.prefix_dhcp4 = f'{self.prefix}_dhcp4'
+        self.prefix_dhcp6 = f'{self.prefix}_dhcp6'
 
         self.metrics_dhcp4 = None
         self.metrics_dhcp4_map = None
@@ -45,91 +93,37 @@ class KeaExporter:
         self.metrics_dhcp6_ignore = None
         self.setup_dhcp6_metrics()
 
-        # kea config
-        self.config_path = config_path
-        self.config = None
-
-        self.inotify = inotify.adapters.Inotify()
-        self.inotify.add_watch(
-            config_path, mask=inotify.constants.IN_MODIFY
-        )
-
-        self.load_config()
-
-    def load_config(self):
-        with open(self.config_path, 'r') as handle:
-            self.config = json.load(handle)
-
-        try:
-            sock_path = self.config['Dhcp4']['control-socket']['socket-name']
-            if not os.access(sock_path, os.F_OK):
-                raise FileNotFoundError()
-            if not os.access(sock_path, os.R_OK | os.W_OK):
-                raise PermissionError()
-            self.sock_dhcp4_path = sock_path
-        except KeyError:
-            click.echo('Dhcp4.control-socket.socket-name not configured, '
-                       'will not be exporting Dhcp4 metrics', file=sys.stderr)
-        except FileNotFoundError:
-            click.echo('Dhcp4 control-socket configured, but it does not '
-                       'exist. Is Kea running?', file=sys.stderr)
-            sys.exit(1)
-        except PermissionError:
-            click.echo('Dhcp4 control-socket is not read-/writeable.',
-                       file=sys.stderr)
-            sys.exit(1)
-
-        try:
-            sock_path = self.config['Dhcp6']['control-socket']['socket-name']
-            if not os.access(sock_path, os.F_OK):
-                raise FileNotFoundError()
-            if not os.access(sock_path, os.R_OK | os.W_OK):
-                raise PermissionError()
-            self.sock_dhcp6_path = sock_path
-        except KeyError:
-            click.echo('Dhcp6.control-socket.socket-name not configured, '
-                       'will not be exporting Dhcp6 metrics', file=sys.stderr)
-        except FileNotFoundError:
-            click.echo('Dhcp6 control-socket configured, but it does not '
-                       'exist. Is Kea running?', file=sys.stderr)
-            sys.exit(1)
-        except PermissionError:
-            click.echo('Dhcp6 control-socket is not read-/writeable.',
-                       file=sys.stderr)
-            sys.exit(1)
-
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
             # Packets
             'sent_packets': Gauge(
-                '{0}_packets_sent_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_packets_sent_total',
                 'Packets sent',
                 ['operation']),
             'received_packets': Gauge(
-                '{0}_packets_received_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_packets_received_total',
                 'Packets received',
                 ['operation']),
 
             # per Subnet
             'addresses_assigned_total': Gauge(
-                '{0}_addresses_assigned_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_addresses_assigned_total',
                 'Assigned addresses',
                 ['subnet']),
             'addresses_declined_total': Gauge(
-                '{0}_addresses_declined_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_addresses_declined_total',
                 'Declined counts',
                 ['subnet']),
             'addresses_declined_reclaimed_total': Gauge(
-                '{0}_addresses_declined_reclaimed_total'.format(
-                    self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
                 ['subnet']),
             'addresses_reclaimed_total': Gauge(
-                '{0}_addresses_reclaimed_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
                 ['subnet']),
             'addresses_total': Gauge(
-                '{0}_addresses_total'.format(self.prefix_dhcp4),
+                f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
                 ['subnet']
             )
@@ -260,59 +254,58 @@ class KeaExporter:
         self.metrics_dhcp6 = {
             # Packets sent/received
             'sent_packets': Gauge(
-                '{0}_packets_sent_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_packets_sent_total',
                 'Packets sent',
                 ['operation']),
             'received_packets': Gauge(
-                '{0}_packets_received_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_packets_received_total',
                 'Packets received',
                 ['operation']),
 
             # DHCPv4-over-DHCPv6
             'sent_dhcp4_packets': Gauge(
-                '{0}_packets_sent_dhcp4_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_packets_sent_dhcp4_total',
                 'DHCPv4-over-DHCPv6 Packets received',
                 ['operation']
             ),
             'received_dhcp4_packets': Gauge(
-                '{0}_packets_received_dhcp4_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_packets_received_dhcp4_total',
                 'DHCPv4-over-DHCPv6 Packets received',
                 ['operation']
             ),
 
             # per Subnet
             'addresses_declined_total': Gauge(
-                '{0}_addresses_declined_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_addresses_declined_total',
                 'Declined addresses',
                 ['subnet']),
             'addresses_declined_reclaimed_total': Gauge(
-                '{0}_addresses_declined_reclaimed_total'.format(
-                    self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
                 ['subnet']),
             'addresses_reclaimed_total': Gauge(
-                '{0}_addresses_reclaimed_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
                 ['subnet']),
 
             # IA_NA
             'na_assigned_total': Gauge(
-                '{0}_na_assigned_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_na_assigned_total',
                 'Assigned non-temporary addresses (IA_NA)',
                 ['subnet']),
             'na_total': Gauge(
-                '{0}_na_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_na_total',
                 'Size of non-temporary address pool',
                 ['subnet']
             ),
 
             # IA_PD
             'pd_assigned_total': Gauge(
-                '{0}_pd_assigned_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_pd_assigned_total',
                 'Assigned prefix delegations (IA_PD)',
                 ['subnet']),
             'pd_total': Gauge(
-                '{0}_pd_total'.format(self.prefix_dhcp6),
+                f'{self.prefix_dhcp6}_pd_total',
                 'Size of prefix delegation pool',
                 ['subnet']
             ),
@@ -467,64 +460,53 @@ class KeaExporter:
         ]
 
     def update(self):
-        reload_config = False
-        for event in self.inotify.event_gen():
-            if not event:
-                break
-            reload_config = True
-
-        if reload_config:
-            click.echo('Config was modified, reloading...', file=sys.stderr)
-            self.load_config()
-
-        for sock_path, module in [(self.sock_dhcp4_path, Module.DHCP4),
-                                  (self.sock_dhcp6_path, Module.DHCP6)]:
-            if sock_path is None:
-                continue
-
-            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
-                sock.connect(sock_path)
-                sock.send(KeaExporter.msg_statistics_all)
-                response = sock.recv(8192).decode()
-                self.parse_metrics(json.loads(response), module)
-
-    def parse_metrics(self, response, module):
-        for key, data in response['arguments'].items():
-            if module is Module.DHCP4:
-                if key in self.metrics_dhcp4_ignore:
-                    continue
-            else:
-                if key in self.metrics_dhcp6_ignore:
-                    continue
-
-            value, timestamp = data[0]
-            labels = {}
-
-            # lookup subnet
-            if key.startswith('subnet['):
-                match = self.subnet_pattern.match(key)
-                if match:
-                    subnet_idx = int(match.group('subnet_idx')) - 1
-                    key = match.group('metric')
-
-                    if module is Module.DHCP4:
-                        subnet = self.config['Dhcp4']['subnet4'][subnet_idx]
-                    else:
-                        subnet = self.config['Dhcp6']['subnet6'][subnet_idx]
-                    labels['subnet'] = subnet['subnet']
+        for kea in self.kea_instances:
+            for key, data in kea.stats()['arguments'].items():
+                if kea.dhcp_version is DHCPVersion.DHCP4:
+                    if key in self.metrics_dhcp4_ignore:
+                        continue
+                elif kea.dhcp_version is DHCPVersion.DHCP6:
+                    if key in self.metrics_dhcp6_ignore:
+                        continue
                 else:
-                    click.echo('subnet pattern failed for metric: {0}'.format(
-                        key), file=sys.stderr)
+                    continue
 
-            if module is Module.DHCP4:
-                metric_info = self.metrics_dhcp4_map[key]
-                metric = self.metrics_dhcp4[metric_info['metric']]
-            else:
-                metric_info = self.metrics_dhcp6_map[key]
-                metric = self.metrics_dhcp6[metric_info['metric']]
+                value, timestamp = data[0]
+                labels = {}
 
-            # merge static and dynamic labels
-            labels.update(metric_info.get('labels', {}))
+                # Additional matching is required when we encounter a subnet
+                # metric.
+                if key.startswith('subnet['):
+                    match = self.subnet_pattern.match(key)
+                    if match:
+                        subnet_id = int(match.group('subnet_id'))
+                        key = match.group('metric')
 
-            # export labels and value
-            metric.labels(**labels).set(value)
+                        try:
+                            subnet = kea.subnets[subnet_id]
+                        except KeyError:
+                            if subnet_id not in kea.subnet_missing_info_sent:
+                                kea.subnet_missing_info_sent.append(subnet_id)
+                                click.echo(
+                                    f"The subnet with id {subnet_id} on socket {kea.sock_path} appeared in statistics "
+                                    f"but is not part of the configuration anymore! Ignoring.",
+                                    file=sys.stderr
+                                )
+                            continue
+                        labels['subnet'] = subnet['subnet']
+                    else:
+                        click.echo(f'subnet pattern failed for metric: {key}',
+                                   file=sys.stderr)
+
+                if kea.dhcp_version is DHCPVersion.DHCP4:
+                    metric_info = self.metrics_dhcp4_map[key]
+                    metric = self.metrics_dhcp4[metric_info['metric']]
+                elif kea. dhcp_version is DHCPVersion.DHCP6:
+                    metric_info = self.metrics_dhcp6_map[key]
+                    metric = self.metrics_dhcp6[metric_info['metric']]
+
+                # merge static and dynamic labels
+                labels.update(metric_info.get('labels', {}))
+
+                # export labels and value
+                metric.labels(**labels).set(value)

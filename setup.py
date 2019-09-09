@@ -22,8 +22,6 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as handle:
 required = [
     'click>=6.7',
     'prometheus_client>=0.1.1',
-    'hjson>=3.0.1',
-    'inotify>=0.2.9'
 ]
 
 
