@@ -52,14 +52,14 @@ Usage
 Configure Control Socket
 ////////////////////////
 
-The exporter uses Kea's control socket and the ``statistic-get-all`` request. Consult the documentation on how to set up
-the control socket:
+The exporter uses Kea's control socket to request both configuration and 
+statistics. Consult the documentation on how to set up the control socket:
 
-- http://kea.isc.org/docs/kea-guide.html#dhcp4-ctrl-channel
-- http://kea.isc.org/docs/kea-guide.html#dhcp6-ctrl-channel
+- https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#management-api-for-the-dhcpv4-server
+- https://kea.readthedocs.io/en/latest/arm/dhcp6-srv.html#management-api-for-the-dhcpv6-server
 
 Permissions
 ///////////
 
-Kea Exporter needs to be able to read and write on the socket, hence it's permissions might need to be modified
-accordingly.
+Kea Exporter needs to be able to read and write on the socket, hence it's
+permissions might need to be modified accordingly.
