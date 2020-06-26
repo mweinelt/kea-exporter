@@ -335,7 +335,7 @@ class KeaExporter:
                 },
             },
             'pkt6-parse-failed': {
-                'metric': 'receoved_packets',
+                'metric': 'received_packets',
                 'labels': {
                     'operation': 'parse-failed'
                 },
