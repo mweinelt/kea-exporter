@@ -34,6 +34,7 @@ setup(
     author_email='martin+keaexporter@linuxlounge.net',
     url='https://www.github.com/mweinelt/kea-exporter',
     license='MIT',
+    python_requires=">=3.6",
     install_requires=required,
     packages=find_packages(),
     entry_points={
