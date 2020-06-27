@@ -1,3 +1,7 @@
+0.4.1
+ - Fixes a typo in metric exposing the pkt6-parse-failed counter
+ - Clarifies the minimum python version as 3.6
+
 0.4.0
  - Kea-exporter now consumes control sockets instead of config paths
  - The configuration is being queried from the control socket, allowing
