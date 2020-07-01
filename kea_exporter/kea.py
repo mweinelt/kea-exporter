@@ -109,23 +109,23 @@ class KeaExporter:
             'addresses_assigned_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_assigned_total',
                 'Assigned addresses',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_total',
                 'Declined counts',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             )
         }
 
@@ -278,36 +278,36 @@ class KeaExporter:
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_total',
                 'Declined addresses',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
 
             # IA_NA
             'na_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_na_assigned_total',
                 'Assigned non-temporary addresses (IA_NA)',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'na_total': Gauge(
                 f'{self.prefix_dhcp6}_na_total',
                 'Size of non-temporary address pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             ),
 
             # IA_PD
             'pd_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_assigned_total',
                 'Assigned prefix delegations (IA_PD)',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'pd_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_total',
                 'Size of prefix delegation pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             ),
 
         }
@@ -494,6 +494,7 @@ class KeaExporter:
                                 )
                             continue
                         labels['subnet'] = subnet['subnet']
+                        labels['subnet_id'] = subnet_id
                     else:
                         click.echo(f'subnet pattern failed for metric: {key}',
                                    file=sys.stderr)
