@@ -244,6 +244,7 @@ class KeaExporter:
             'pkt4-sent',
             'pkt4-received',
             # sums of subnet values
+            'cumulative-assigned-addresses',
             'declined-addresses',
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
@@ -453,6 +454,8 @@ class KeaExporter:
             'pkt6-sent',
             'pkt6-received',
             # sums of subnet values
+            'cumulative-assigned-nas',
+            'cumulative-assigned-pds',
             'declined-addresses',
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
