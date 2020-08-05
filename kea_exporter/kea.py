@@ -485,6 +485,15 @@ class KeaExporter:
                         subnet_id = int(match.group('subnet_id'))
                         key = match.group('metric')
 
+                        if kea.dhcp_version is DHCPVersion.DHCP4:
+                            if key in self.metrics_dhcp4_ignore:
+                                continue
+                        elif kea.dhcp_version is DHCPVersion.DHCP6:
+                            if key in self.metrics_dhcp6_ignore:
+                                continue
+                        else:
+                            continue
+
                         try:
                             subnet = kea.subnets[subnet_id]
                         except KeyError:
