@@ -1,3 +1,8 @@
+0.4.2
+ - Ignore cumulative-assigned-{nas,pds,addresses} introduced some time
+   in the 1.7.x series
+ - Export the subnet id as an additional label
+
 0.4.1
  - Fixes a typo in metric exposing the pkt6-parse-failed counter
  - Clarifies the minimum python version as 3.6

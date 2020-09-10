@@ -73,3 +73,8 @@ Permissions
 
 Kea Exporter needs to be able to read and write on the socket, hence it's
 permissions might need to be modified accordingly.
+
+Grafana-Dashboard
+/////////////////
+
+A dashboard for this exporter is available at https://grafana.com/grafana/dashboards/12688.

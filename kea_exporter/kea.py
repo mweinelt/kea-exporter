@@ -109,23 +109,23 @@ class KeaExporter:
             'addresses_assigned_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_assigned_total',
                 'Assigned addresses',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_total',
                 'Declined counts',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             )
         }
 
@@ -244,6 +244,7 @@ class KeaExporter:
             'pkt4-sent',
             'pkt4-received',
             # sums of subnet values
+            'cumulative-assigned-addresses',
             'declined-addresses',
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
@@ -278,36 +279,36 @@ class KeaExporter:
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_total',
                 'Declined addresses',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
 
             # IA_NA
             'na_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_na_assigned_total',
                 'Assigned non-temporary addresses (IA_NA)',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'na_total': Gauge(
                 f'{self.prefix_dhcp6}_na_total',
                 'Size of non-temporary address pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             ),
 
             # IA_PD
             'pd_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_assigned_total',
                 'Assigned prefix delegations (IA_PD)',
-                ['subnet']),
+                ['subnet', 'subnet_id']),
             'pd_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_total',
                 'Size of prefix delegation pool',
-                ['subnet']
+                ['subnet', 'subnet_id']
             ),
 
         }
@@ -453,6 +454,8 @@ class KeaExporter:
             'pkt6-sent',
             'pkt6-received',
             # sums of subnet values
+            'cumulative-assigned-nas',
+            'cumulative-assigned-pds',
             'declined-addresses',
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
@@ -482,6 +485,15 @@ class KeaExporter:
                         subnet_id = int(match.group('subnet_id'))
                         key = match.group('metric')
 
+                        if kea.dhcp_version is DHCPVersion.DHCP4:
+                            if key in self.metrics_dhcp4_ignore:
+                                continue
+                        elif kea.dhcp_version is DHCPVersion.DHCP6:
+                            if key in self.metrics_dhcp6_ignore:
+                                continue
+                        else:
+                            continue
+
                         try:
                             subnet = kea.subnets[subnet_id]
                         except KeyError:
@@ -494,6 +506,7 @@ class KeaExporter:
                                 )
                             continue
                         labels['subnet'] = subnet['subnet']
+                        labels['subnet_id'] = subnet_id
                     else:
                         click.echo(f'subnet pattern failed for metric: {key}',
                                    file=sys.stderr)
@@ -501,7 +514,7 @@ class KeaExporter:
                 if kea.dhcp_version is DHCPVersion.DHCP4:
                     metric_info = self.metrics_dhcp4_map[key]
                     metric = self.metrics_dhcp4[metric_info['metric']]
-                elif kea. dhcp_version is DHCPVersion.DHCP6:
+                elif kea.dhcp_version is DHCPVersion.DHCP6:
                     metric_info = self.metrics_dhcp6_map[key]
                     metric = self.metrics_dhcp6[metric_info['metric']]
 

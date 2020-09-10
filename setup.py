@@ -8,7 +8,8 @@ from kea_exporter import __PROJECT__, __VERSION__
 
 
 if sys.argv[-1] == "publish":
-    os.system("python setup.py sdist bdist_wheel upload")
+    os.system("python setup.py sdist bdist_wheel")
+    os.system("python -m twine upload dist/*")
     sys.exit()
 
 here = os.path.abspath(os.path.dirname(__file__))
