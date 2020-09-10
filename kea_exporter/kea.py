@@ -514,7 +514,7 @@ class KeaExporter:
                 if kea.dhcp_version is DHCPVersion.DHCP4:
                     metric_info = self.metrics_dhcp4_map[key]
                     metric = self.metrics_dhcp4[metric_info['metric']]
-                elif kea. dhcp_version is DHCPVersion.DHCP6:
+                elif kea.dhcp_version is DHCPVersion.DHCP6:
                     metric_info = self.metrics_dhcp6_map[key]
                     metric = self.metrics_dhcp6[metric_info['metric']]
 
