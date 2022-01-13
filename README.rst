@@ -6,11 +6,13 @@ Prometheus Exporter for the ISC Kea DHCP Server.
 From v0.4.0 on Kea >=1.3.0 is required, as the configuration, specifically
 subnet information, will be read from the control socket.
 
-
 Installation
 ------------
 
-The latest stable version can be installed from PyPi:
+.. image:: https://repology.org/badge/vertical-allrepos/kea-exporter.svg
+   :alt: Package versions via repology.org
+
+The latest stable version can always be installed from PyPi:
 
 ::
 
