@@ -1,3 +1,12 @@
+|license| |version|
+
+.. |license| image:: https://img.shields.io/github/license/mweinelt/kea-exporter
+   :alt: GitHub license
+   :target: https://github.com/mweinelt/kea-exporter/blob/develop/LICENSE
+
+.. |version| image:: https://img.shields.io/github/v/tag/mweinelt/kea-exporter
+   :alt: GitHub tag (latest SemVer)
+
 kea-exporter
 ============
 
