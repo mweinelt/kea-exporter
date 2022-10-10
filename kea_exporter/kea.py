@@ -105,6 +105,12 @@ class KeaExporter:
                 'Packets received',
                 ['operation']),
 
+            # Allocation
+            'allocation_fail': Gauge(
+                f'{self.prefix_dhcp4}_allocation_fail_total',
+                'Allocation fail count',
+                ['allocation']),
+
             # per Subnet
             'addresses_assigned_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_assigned_total',
@@ -125,8 +131,11 @@ class KeaExporter:
             'addresses_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
-                ['subnet', 'subnet_id']
-            )
+                ['subnet', 'subnet_id']),
+            'reservation_conflicts': Gauge(
+                f'{self.prefix_dhcp4}_reservation_conflicts',
+                'Reservation conflict count',
+                ['subnet', 'subnet_id']),
         }
 
         self.metrics_dhcp4_map = {
@@ -218,6 +227,35 @@ class KeaExporter:
                 }
             },
 
+            # Allocation Failed
+            'v4-allocation-fail-subnet' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'subnet'
+                },
+            },
+
+            'v4-allocation-fail-shared-network' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'shared-network'
+                },
+            },
+
+            'v4-allocation-fail-no-pools' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'no-pools'
+                },
+            },
+
+            'v4-allocation-fail-classes' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'classes'
+                },
+            },
+   
             # per Subnet
             'assigned-addresses': {
                 'metric': 'addresses_assigned_total',
@@ -236,11 +274,16 @@ class KeaExporter:
             },
             'total-addresses': {
                 'metric': 'addresses_total',
+            },
+            'v4-reservation-conflicts' :{
+                'metric' : 'reservation_conflicts',
             }
         }
 
         self.metrics_dhcp4_ignore = [
             # sums of different packet types
+            'v4-reservation-conflicts',
+            'v4-allocation-fail',
             'pkt4-sent',
             'pkt4-received',
             # sums of subnet values
@@ -249,6 +292,10 @@ class KeaExporter:
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
             'reclaimed-leases'
+        ]
+        # to catch subnet metrics with duplicate names as global metrics
+        self.subnet_metric_dhcp4_overide = [
+            'v4-reservation-conflicts'
         ]
 
     def setup_dhcp6_metrics(self):
@@ -262,6 +309,12 @@ class KeaExporter:
                 f'{self.prefix_dhcp6}_packets_received_total',
                 'Packets received',
                 ['operation']),
+
+            # Allocation Fail
+            'allocation_fail': Gauge(
+                f'{self.prefix_dhcp6}_allocation_fail_total',
+                'Allocation fail count',
+                ['allocation']),
 
             # DHCPv4-over-DHCPv6
             'sent_dhcp4_packets': Gauge(
@@ -287,6 +340,10 @@ class KeaExporter:
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
+                ['subnet', 'subnet_id']),
+            'reservation_conflicts': Gauge(
+                f'{self.prefix_dhcp6}_reservation_conflicts',
+                'Reservation conflict count',
                 ['subnet', 'subnet_id']),
 
             # IA_NA
@@ -402,6 +459,35 @@ class KeaExporter:
                 }
             },
 
+            # Allocation Fail 
+            'v6-allocation-fail-shared-network' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'shared-network'
+                },
+            },
+
+            'v6-allocation-fail-subnet' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'subnet'
+                },
+            },
+
+            'v6-allocation-fail-no-pools' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'no-pools'
+                },
+            },
+
+            'v6-allocation-fail-classes' :{
+                'metric' : 'allocation_fail',
+                'labels': {
+                    'allocation': 'classes'
+                },
+            },
+
             # DHCPv4-over-DHCPv6
             'pkt6-dhcpv4-response-sent': {
                 'metric': 'sent_dhcp4_packets',
@@ -446,11 +532,16 @@ class KeaExporter:
             },
             'total-pds': {
                 'metric': 'pd_total',
-            }
+            },
+            'v6-reservation-conflicts' :{
+                'metric' : 'reservation_conflicts',
+            },
         }
 
         self.metrics_dhcp6_ignore = [
             # sums of different packet types
+            'v6-reservation-conflicts',
+            'v6-allocation-fail',
             'pkt6-sent',
             'pkt6-received',
             # sums of subnet values
@@ -460,6 +551,11 @@ class KeaExporter:
             'declined-reclaimed-addresses',
             'reclaimed-declined-addresses',
             'reclaimed-leases'
+        ]
+
+        # to catch subnet metrics with duplicate names as global metrics
+        self.subnet_metric_dhcp6_overide = [
+            'v6-reservation-conflicts'
         ]
 
     def update(self):
@@ -486,10 +582,10 @@ class KeaExporter:
                         key = match.group('metric')
 
                         if kea.dhcp_version is DHCPVersion.DHCP4:
-                            if key in self.metrics_dhcp4_ignore:
+                            if key in self.metrics_dhcp4_ignore and key not in self.subnet_metric_dhcp4_overide:
                                 continue
                         elif kea.dhcp_version is DHCPVersion.DHCP6:
-                            if key in self.metrics_dhcp6_ignore:
+                            if key in self.metrics_dhcp6_ignore and key not in self.subnet_metric_dhcp4_overide:
                                 continue
                         else:
                             continue
