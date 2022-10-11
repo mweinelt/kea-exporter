@@ -93,6 +93,9 @@ class KeaExporter:
         self.metrics_dhcp6_ignore = None
         self.setup_dhcp6_metrics()
 
+        # track unhandled metric keys, to notify only once
+        self.unhandled_metrics = set()
+
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
             # Packets
@@ -512,11 +515,22 @@ class KeaExporter:
                                    file=sys.stderr)
 
                 if kea.dhcp_version is DHCPVersion.DHCP4:
-                    metric_info = self.metrics_dhcp4_map[key]
-                    metric = self.metrics_dhcp4[metric_info['metric']]
+                    metrics_map = self.metrics_dhcp4_map
+                    metrics = self.metrics_dhcp4
                 elif kea.dhcp_version is DHCPVersion.DHCP6:
-                    metric_info = self.metrics_dhcp6_map[key]
-                    metric = self.metrics_dhcp6[metric_info['metric']]
+                    metrics_map = self.metrics_dhcp6_map
+                    metrics = self.metrics_dhcp6
+                else:
+                    continue
+
+                try:
+                    metric_info = metrics_map[key]
+                except KeyError:
+                    if key not in self.unhandled_metrics:
+                        click.echo(f"Unhandled metric '{key}', please open an issue at https://github.com/mweinelt/kea-exporter/issues")
+                        self.unhandled_metrics.add(key)
+                    continue
+                metric = metrics[metric_info['metric']]
 
                 # merge static and dynamic labels
                 labels.update(metric_info.get('labels', {}))
