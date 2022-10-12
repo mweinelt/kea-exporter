@@ -1,3 +1,6 @@
+0.4.4
+ - Fixes missing version bump in pyproject.toml
+
 0.4.3
  - Converto PEP517 build system and use poetry-core for the build
  - Gracefully handle unknown metrics and nudge users to report issues
