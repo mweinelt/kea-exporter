@@ -1,3 +1,8 @@
+0.4.3
+ - Converto PEP517 build system and use poetry-core for the build
+ - Gracefully handle unknown metrics and nudge users to report issues
+   for them
+
 0.4.2
  - Ignore cumulative-assigned-{nas,pds,addresses} introduced some time
    in the 1.7.x series
