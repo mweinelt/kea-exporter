@@ -50,7 +50,6 @@ class KeaSocket:
         # I don't currently know how to detect a changed configuration, so
         # unfortunately we're reloading more often now as a workaround.
         self.reload()
-        self.statsdata = self.query('statistic-get-all')
         return self.query('statistic-get-all')
 
     def reload(self):
