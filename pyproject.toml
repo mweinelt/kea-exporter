@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kea-exporter"
-version = "0.4.3"
+version = "0.4.4"
 description = "Export Kea Metrics in the Prometheus Exposition Format"
 authors = [
   "Martin Weinelt <hexa@darmstadt.ccc.de>"
