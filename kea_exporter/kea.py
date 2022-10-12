@@ -85,7 +85,7 @@ class KeaExporter:
 
         self.metrics_dhcp4 = None
         self.metrics_dhcp4_map = None
-        self.metrics_dhcp4_ignore = None
+        self.metrics_dhcp4_global_ignore = None
         self.setup_dhcp4_metrics()
 
         self.metrics_dhcp6 = None
@@ -132,8 +132,8 @@ class KeaExporter:
                 f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
                 ['subnet', 'subnet_id']),
-            'reservation_conflicts': Gauge(
-                f'{self.prefix_dhcp4}_reservation_conflicts',
+            'reservation_conflicts_total': Gauge(
+                f'{self.prefix_dhcp4}_reservation_conflicts_total',
                 'Reservation conflict count',
                 ['subnet', 'subnet_id']),
         }
@@ -263,9 +263,6 @@ class KeaExporter:
             'declined-addresses': {
                 'metric': 'addresses_declined_total',
             },
-            'declined-reclaimed-addresses': {
-                'metric': 'addresses_declined_reclaimed_total',
-            },
             'reclaimed-declined-addresses': {
                 'metric': 'addresses_declined_reclaimed_total',
             },
@@ -276,26 +273,25 @@ class KeaExporter:
                 'metric': 'addresses_total',
             },
             'v4-reservation-conflicts' :{
-                'metric' : 'reservation_conflicts',
+                'metric' : 'reservation_conflicts_total',
             }
         }
-
-        self.metrics_dhcp4_ignore = [
+        # Ignore list for Global level metrics
+        self.metrics_dhcp4_global_ignore = [
+            'cumulative-assigned-addresses',
+            'declined-addresses',
             # sums of different packet types
+            'reclaimed-declined-addresses',
+            'reclaimed-leases',
             'v4-reservation-conflicts',
             'v4-allocation-fail',
             'pkt4-sent',
             'pkt4-received',
-            # sums of subnet values
-            'cumulative-assigned-addresses',
-            'declined-addresses',
-            'declined-reclaimed-addresses',
-            'reclaimed-declined-addresses',
-            'reclaimed-leases'
+
         ]
-        # to catch subnet metrics with duplicate names as global metrics
-        self.subnet_metric_dhcp4_overide = [
-            'v4-reservation-conflicts'
+        # Ignore list for subnet level metrics
+        self.metric_dhcp4_subnet_ignore = [
+            'cumulative-assigned-addresses',
         ]
 
     def setup_dhcp6_metrics(self):
@@ -312,7 +308,7 @@ class KeaExporter:
 
             # Allocation Fail
             'allocation_fail': Gauge(
-                f'{self.prefix_dhcp6}_allocation_fail_total',
+                f'{self.prefix_dhcp6}_allocations_failed_total',
                 'Allocation fail count',
                 ['allocation']),
 
@@ -341,8 +337,8 @@ class KeaExporter:
                 f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
                 ['subnet', 'subnet_id']),
-            'reservation_conflicts': Gauge(
-                f'{self.prefix_dhcp6}_reservation_conflicts',
+            'reservation_conflicts_total': Gauge(
+                f'{self.prefix_dhcp6}_reservation_conflicts_total',
                 'Reservation conflict count',
                 ['subnet', 'subnet_id']),
 
@@ -534,38 +530,40 @@ class KeaExporter:
                 'metric': 'pd_total',
             },
             'v6-reservation-conflicts' :{
-                'metric' : 'reservation_conflicts',
+                'metric' : 'reservation_conflicts_total',
             },
         }
 
-        self.metrics_dhcp6_ignore = [
+        # Ignore list for Global level metrics
+        self.metrics_dhcp6_global_ignore = [
+            'cumulative-assigned-addresses',
+            'declined-addresses',
             # sums of different packet types
+            'cumulative-assigned-nas',
+            'cumulative-assigned-pds',
+            'reclaimed-declined-addresses',
+            'reclaimed-leases',
             'v6-reservation-conflicts',
             'v6-allocation-fail',
             'pkt6-sent',
             'pkt6-received',
-            # sums of subnet values
+
+        ]
+        # Ignore list for subnet level metrics
+        self.metric_dhcp6_subnet_ignore = [
+            'cumulative-assigned-addresses',
             'cumulative-assigned-nas',
             'cumulative-assigned-pds',
-            'declined-addresses',
-            'declined-reclaimed-addresses',
-            'reclaimed-declined-addresses',
-            'reclaimed-leases'
-        ]
-
-        # to catch subnet metrics with duplicate names as global metrics
-        self.subnet_metric_dhcp6_overide = [
-            'v6-reservation-conflicts'
         ]
 
     def update(self):
         for kea in self.kea_instances:
             for key, data in kea.stats()['arguments'].items():
                 if kea.dhcp_version is DHCPVersion.DHCP4:
-                    if key in self.metrics_dhcp4_ignore:
+                    if key in self.metrics_dhcp4_global_ignore:
                         continue
                 elif kea.dhcp_version is DHCPVersion.DHCP6:
-                    if key in self.metrics_dhcp6_ignore:
+                    if key in self.metrics_dhcp6_global_ignore:
                         continue
                 else:
                     continue
@@ -582,10 +580,10 @@ class KeaExporter:
                         key = match.group('metric')
 
                         if kea.dhcp_version is DHCPVersion.DHCP4:
-                            if key in self.metrics_dhcp4_ignore and key not in self.subnet_metric_dhcp4_overide:
+                            if key in self.metric_dhcp4_subnet_ignore:
                                 continue
                         elif kea.dhcp_version is DHCPVersion.DHCP6:
-                            if key in self.metrics_dhcp6_ignore and key not in self.subnet_metric_dhcp4_overide:
+                            if key in self.metric_dhcp6_subnet_ignore:
                                 continue
                         else:
                             continue
