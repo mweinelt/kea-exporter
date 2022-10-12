@@ -107,7 +107,7 @@ class KeaExporter:
 
             # Allocation
             'allocation_fail': Gauge(
-                f'{self.prefix_dhcp4}_allocation_fail_total',
+                f'{self.prefix_dhcp4}_allocations_failed_total',
                 'Allocation fail count',
                 ['allocation']),
 
