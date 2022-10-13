@@ -1,10 +1,10 @@
-import click
 import time
 
+import click
 from prometheus_client import start_http_server
 
 from . import __PROJECT__, __VERSION__
-from .kea import KeaSocket, KeaExporter
+from .kea import KeaExporter, KeaSocket
 
 
 @click.command()
