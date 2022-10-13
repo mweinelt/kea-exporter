@@ -1,3 +1,7 @@
+0.5.0
+ - Add support for new metrics in Kea 2.2.0 (@glendekoning)
+ - Migrate from poetry to pdm
+
 0.4.4
  - Fixes missing version bump in pyproject.toml
 
