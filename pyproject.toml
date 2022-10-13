@@ -1,42 +1,55 @@
-[tool.poetry]
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
+
+[project]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
 name = "kea-exporter"
 version = "0.4.4"
 description = "Export Kea Metrics in the Prometheus Exposition Format"
 authors = [
-  "Martin Weinelt <hexa@darmstadt.ccc.de>"
+    { name = "Martin Weinelt", email = "hexa@darmstadt.ccc.de" },
 ]
-license = "MIT"
+license = { text = "MIT" }
+requires-python = ">=3.7,<4.0"
+dependencies = [
+    "click>=6.7",
+    "prometheus-client>=0.1.1",
+]
 readme = "README.rst"
-homepage = "https://github.com/mweinelt/kea-exporter"
-repository = "https://github.com/mweinelt/kea-exporter.git"
 keywords = [
-  "prometheus",
-  "exporter",
-  "metrics",
-  "kea",
-  "dhcp"
+    "prometheus",
+    "exporter",
+    "metrics",
+    "kea",
+    "dhcp",
 ]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Topic :: System :: Monitoring",
-  "Topic :: System :: Systems Administration"
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Systems Administration",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-click = ">=6.7"
-prometheus-client = ">=0.1.1"
+[project.urls]
+changelog = "https://github.com/mweinelt/kea-exporter/blob/develop/HISTORY"
+homepage = "https://github.com/mweinelt/kea-exporter"
+repository = "https://github.com/mweinelt/kea-exporter.git"
 
-[tool.poetry.dev-dependencies]
+[project.scripts]
+kea-exporter = "kea_exporter.__main__:cli"
 
-[tool.poetry.scripts]
-kea-exporter = 'kea_exporter.__main__:cli'
+[project.optional-dependencies]
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "isort>=5.10.1",
+]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.pdm.build]
+includes = []
