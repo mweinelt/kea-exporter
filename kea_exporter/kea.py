@@ -110,7 +110,7 @@ class KeaExporter:
             'allocation_fail': Gauge(
                 f'{self.prefix_dhcp4}_allocations_failed_total',
                 'Allocation fail count',
-                ['allocation']),
+                ['context']),
 
             # per Subnet
             'addresses_assigned_total': Gauge(
@@ -232,28 +232,28 @@ class KeaExporter:
             'v4-allocation-fail-subnet' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'subnet'
+                    'context': 'subnet'
                 },
             },
 
             'v4-allocation-fail-shared-network' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'shared-network'
+                    'context': 'shared-network'
                 },
             },
 
             'v4-allocation-fail-no-pools' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'no-pools'
+                    'context': 'no-pools'
                 },
             },
 
             'v4-allocation-fail-classes' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'classes'
+                    'context': 'classes'
                 },
             },
    
@@ -279,6 +279,7 @@ class KeaExporter:
         }
         # Ignore list for Global level metrics
         self.metrics_dhcp4_global_ignore = [
+            # metrics that exist at the subnet level in more detail
             'cumulative-assigned-addresses',
             'declined-addresses',
             # sums of different packet types
@@ -311,7 +312,7 @@ class KeaExporter:
             'allocation_fail': Gauge(
                 f'{self.prefix_dhcp6}_allocations_failed_total',
                 'Allocation fail count',
-                ['allocation']),
+                ['context']),
 
             # DHCPv4-over-DHCPv6
             'sent_dhcp4_packets': Gauge(
@@ -460,28 +461,28 @@ class KeaExporter:
             'v6-allocation-fail-shared-network' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'shared-network'
+                    'context': 'shared-network'
                 },
             },
 
             'v6-allocation-fail-subnet' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'subnet'
+                    'context': 'subnet'
                 },
             },
 
             'v6-allocation-fail-no-pools' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'no-pools'
+                    'context': 'no-pools'
                 },
             },
 
             'v6-allocation-fail-classes' :{
                 'metric' : 'allocation_fail',
                 'labels': {
-                    'allocation': 'classes'
+                    'context': 'classes'
                 },
             },
 
@@ -537,6 +538,7 @@ class KeaExporter:
 
         # Ignore list for Global level metrics
         self.metrics_dhcp6_global_ignore = [
+            # metrics that exist at the subnet level in more detail
             'cumulative-assigned-addresses',
             'declined-addresses',
             # sums of different packet types
