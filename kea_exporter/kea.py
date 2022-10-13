@@ -85,11 +85,13 @@ class KeaExporter:
         self.metrics_dhcp4 = None
         self.metrics_dhcp4_map = None
         self.metrics_dhcp4_global_ignore = None
+        self.metrics_dhcp4_subnet_ignore = None
         self.setup_dhcp4_metrics()
 
         self.metrics_dhcp6 = None
         self.metrics_dhcp6_map = None
-        self.metrics_dhcp6_ignore = None
+        self.metrics_dhcp6_global_ignore = None
+        self.metrics_dhcp6_subnet_ignore = None
         self.setup_dhcp6_metrics()
 
     def setup_dhcp4_metrics(self):
