@@ -1,11 +1,9 @@
 import time
-import sys
 import click
+
 from prometheus_client import start_http_server
 
 from . import __PROJECT__, __VERSION__
-
-
 
 @click.command()
 @click.argument("mode", envvar='MODE', type=click.Choice(['socket', 'http'], case_sensitive=True), required=True)
@@ -18,7 +16,7 @@ from . import __PROJECT__, __VERSION__
 def cli(mode, port, address, interval, **kwargs):
     
     if mode == "socket":
-        from .kea_socket_exporter import KeaSocketExporter  as KeaExporter
+        from .kea_socket_exporter import KeaSocketExporter as KeaExporter
     elif mode == "http":
         from .kea_http_exporter import KeaHTTPExporter as KeaExporter
 
