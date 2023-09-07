@@ -82,6 +82,10 @@ class BaseExporter:
                 f'{self.prefix_dhcp4}_reservation_conflicts_total',
                 'Reservation conflict count',
                 ['subnet', 'subnet_id']),
+            'reused_leases': Gauge(
+                f'{self.prefix_dhcp4}_reused_leases',
+                'Number of times an IPv4 lease had its CLTT increased in memory and its expiration time left unchanged in persistent storage as part of the lease caching feature.',
+                ['subnet', 'subnet_id']),
         }
 
         self.metrics_dhcp4_map = {
@@ -201,6 +205,11 @@ class BaseExporter:
                     'context': 'classes'
                 },
             },
+
+            'v4-lease-reuses': {
+                'metric' : 'reused_leases',
+            },
+
             'assigned-addresses': {
                 'metric': 'addresses_assigned_total',
             },
@@ -236,7 +245,7 @@ class BaseExporter:
             'v4-allocation-fail-classes',
             'pkt4-sent',
             'pkt4-received',
-
+            'v4-lease-reuses',
         ]
         # Ignore list for subnet level metrics
         self.metric_dhcp4_subnet_ignore = [
