@@ -52,7 +52,7 @@ class KeaHTTPExporter(BaseExporter):
             if module == 'dhcp4':
                 dhcp_version = self.DHCPVersion.DHCP4
                 subnets = self.subnets
-            elif module == 'dhcp4':
+            elif module == 'dhcp6':
                 dhcp_version = self.DHCPVersion.DHCP6
                 subnets = self.subnets6
             else:
