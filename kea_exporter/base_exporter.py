@@ -566,7 +566,7 @@ class BaseExporter:
                 if pool_index:
                     # Matched for subnet pool metrics
                     pool_index = int(pool_index)
-                    subnet_pools = subnet_data.get("pools", [])
+                    subnet_pools = [pool.get("pool") for pool in subnet_data.get("pools", [])]
 
                     if len(subnet_pools) <= pool_index:
                         if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(dhcp_version, []):
