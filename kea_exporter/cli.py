@@ -6,7 +6,7 @@ from prometheus_client import start_http_server
 from . import __PROJECT__, __VERSION__
 
 @click.command()
-@click.option('-m', '--mode', envvar='MODE', default='socket', type=click.Choice(['socket', 'http'], case_sensitive=True))
+@click.option('-m', '--mode', envvar='MODE', default='socket', help='Select mode.', type=click.Choice(['socket', 'http'], case_sensitive=True))
 @click.option('-a', '--address', envvar='ADDRESS', default='0.0.0.0', help='Specify the address to bind against.')
 @click.option('-p', '--port', envvar='PORT', type=int, default=9547, help='Specify the port on which to listen.')
 @click.option('-i', '--interval', envvar='INTERVAL', type=int, default=7.5, help='Specify the metrics update interval in seconds.')
