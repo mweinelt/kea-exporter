@@ -1,9 +1,18 @@
+import sys
 import re
 
 from prometheus_client import Gauge
 
+from enum import Enum
+
+import click
+
+
 
 class BaseExporter:
+    class DHCPVersion(Enum):
+        DHCP4 = 1
+        DHCP6 = 2
     subnet_pattern = re.compile(
         r"^subnet\[(?P<subnet_id>[\d]+)\]\.(pool\[(?P<pool_index>[\d]+)\]\.(?P<pool_metric>[\w-]+)|(?P<subnet_metric>[\w-]+))$")
 
@@ -27,6 +36,9 @@ class BaseExporter:
 
         # track unhandled metric keys, to notify only once
         self.unhandled_metrics = set()
+
+        # track missing info, to notify only once
+        self.subnet_missing_info_sent = {self.DHCPVersion.DHCP4: [], self.DHCPVersion.DHCP6: []}
 
 
     def setup_dhcp4_metrics(self):
@@ -496,3 +508,98 @@ class BaseExporter:
             'cumulative-assigned-pds',
             'v6-allocation-fail',
         ]
+
+    def parse_metrics(self, dhcp_version, arguments, subnets):
+        for key, data in arguments.items():
+            if dhcp_version is self.DHCPVersion.DHCP4:
+                if key in self.metrics_dhcp4_global_ignore:
+                    continue
+            elif dhcp_version is self.DHCPVersion.DHCP6:
+                if key in self.metrics_dhcp6_global_ignore:
+                    continue
+            else:
+                continue
+
+            value, _ = data[0]
+            labels = {}
+
+            subnet_match = self.subnet_pattern.match(key)
+            if subnet_match:
+                subnet_id = int(subnet_match.group('subnet_id'))
+                pool_index = subnet_match.group('pool_index')
+                pool_metric = subnet_match.group('pool_metric')
+                subnet_metric = subnet_match.group('subnet_metric')
+
+                if dhcp_version is self.DHCPVersion.DHCP4:
+                    if key in self.metric_dhcp4_subnet_ignore:
+                        continue
+                elif dhcp_version is self.DHCPVersion.DHCP6:
+                    if key in self.metric_dhcp6_subnet_ignore:
+                        continue
+                else:
+                    continue
+                
+                subnet_data = subnets.get(subnet_id, [])
+                if not subnet_data:
+                    if subnet_id not in self.subnet_missing_info_sent.get(dhcp_version, []):
+                        self.subnet_missing_info_sent.get(dhcp_version, []).append(subnet_id)
+                        click.echo(
+                            f"The subnet with id {subnet_id}, dhcp_version: {dhcp_version.name}, appeared in statistics "
+                            f"but is not part of the configuration anymore! Ignoring.",
+                            file=sys.stderr
+                        )
+                    continue
+                
+                labels['subnet'] = subnet_data.get("subnet")
+                labels['subnet_id'] = subnet_id
+
+                # Check if subnet matches the pool_index
+                if pool_index:
+                    # Matched for subnet pool metrics
+                    pool_index = int(pool_index)
+                    subnet_pools = subnet_data.get("pools", [])
+
+                    if len(subnet_pools) <= pool_index:
+                        if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(dhcp_version, []):
+                            self.subnet_missing_info_sent.get(dhcp_version, []).append(f"{subnet_id}-{pool_index}")
+                            click.echo(
+                                f"The subnet with id {subnet_id} and pool_index {pool_index}, dhcp_version: {dhcp_version.name}, appeared in statistics "
+                                f"but is not part of the configuration anymore! Ignoring.",
+                                file=sys.stderr
+                            )
+                        continue
+                    key = pool_metric
+                    labels["pool"] = subnet_pools[pool_index]
+                else:
+                    # Matched for subnet metrics
+                    key = subnet_metric
+                    labels["pool"] = ""
+
+            if dhcp_version is self.DHCPVersion.DHCP4:
+                metrics_map = self.metrics_dhcp4_map
+                metrics = self.metrics_dhcp4
+            elif dhcp_version is self.DHCPVersion.DHCP6:
+                metrics_map = self.metrics_dhcp6_map
+                metrics = self.metrics_dhcp6
+            else:
+                continue
+
+            try:
+                metric_info = metrics_map[key]
+            except KeyError:
+                if key not in self.unhandled_metrics:
+                    click.echo(f"Unhandled metric '{key}', please open an issue at https://github.com/mweinelt/kea-exporter/issues")
+                    self.unhandled_metrics.add(key)
+                continue
+            
+            
+            metric = metrics[metric_info['metric']]
+
+            # merge static and dynamic labels
+            labels.update(metric_info.get('labels', {}))
+
+            # Filter labels that are not configured for the metric
+            labels = {key: val for key, val in labels.items() if key in metric._labelnames}
+
+            # export labels and value
+            metric.labels(**labels).set(value)
