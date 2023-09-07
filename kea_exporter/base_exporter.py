@@ -45,7 +45,7 @@ class BaseExporter:
             'addresses_allocation_fail': Gauge(
                 f'{self.prefix_dhcp4}_allocations_failed_total',
                 'Allocation fail count',
-                ['subnet', 'subnet_id', 'pool', 'context',]),
+                ['subnet', 'subnet_id', 'context',]),
             'addresses_assigned_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_assigned_total',
                 'Assigned addresses',
@@ -69,7 +69,7 @@ class BaseExporter:
             'reservation_conflicts_total': Gauge(
                 f'{self.prefix_dhcp4}_reservation_conflicts_total',
                 'Reservation conflict count',
-                ['subnet', 'subnet_id', 'pool']),
+                ['subnet', 'subnet_id']),
         }
 
         self.metrics_dhcp4_map = {
@@ -261,7 +261,7 @@ class BaseExporter:
             'addresses_allocation_fail': Gauge(
                 f'{self.prefix_dhcp6}_allocations_failed_total',
                 'Allocation fail count',
-                ['subnet', 'subnet_id', 'pool', 'context',]),
+                ['subnet', 'subnet_id', 'context',]),
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_total',
                 'Declined addresses',
@@ -277,7 +277,7 @@ class BaseExporter:
             'reservation_conflicts_total': Gauge(
                 f'{self.prefix_dhcp6}_reservation_conflicts_total',
                 'Reservation conflict count',
-                ['subnet', 'subnet_id', 'pool']),
+                ['subnet', 'subnet_id']),
 
             # IA_NA
             'na_assigned_total': Gauge(
@@ -294,11 +294,11 @@ class BaseExporter:
             'pd_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_assigned_total',
                 'Assigned prefix delegations (IA_PD)',
-                ['subnet', 'subnet_id', 'pool']),
+                ['subnet', 'subnet_id']),
             'pd_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_total',
                 'Size of prefix delegation pool',
-                ['subnet', 'subnet_id', 'pool']
+                ['subnet', 'subnet_id']
             ),
 
         }

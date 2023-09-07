@@ -144,5 +144,8 @@ class KeaHTTPExporter(BaseExporter):
                 # merge static and dynamic labels
                 labels.update(metric_info.get('labels', {}))
 
+                # Filter labels that are not configured for the metric
+                labels = {key: val for key, val in labels.items() if key in metric._labelnames}
+
                 # export labels and value
                 metric.labels(**labels).set(value)
