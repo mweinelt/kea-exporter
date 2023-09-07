@@ -5,7 +5,7 @@ from prometheus_client import Gauge
 
 class BaseExporter:
     subnet_pattern = re.compile(
-        r"subnet\[(?P<subnet_id>[\d]+)\]\.(?P<metric>[\w-]+)")
+        r"^subnet\[(?P<subnet_id>[\d]+)\]\.(pool\[(?P<pool_index>[\d]+)\]\.(?P<pool_metric>[\w-]+)|(?P<subnet_metric>[\w-]+))$")
 
     def __init__(self):
         # prometheus
@@ -41,35 +41,35 @@ class BaseExporter:
                 'Packets received',
                 ['operation']),
 
-            # per Subnet
+            # per Subnet or Subnet pool
             'addresses_allocation_fail': Gauge(
                 f'{self.prefix_dhcp4}_allocations_failed_total',
                 'Allocation fail count',
-                ['subnet', 'subnet_id', 'context',]),
+                ['subnet', 'subnet_id', 'pool', 'context',]),
             'addresses_assigned_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_assigned_total',
                 'Assigned addresses',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_total',
                 'Declined counts',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_total': Gauge(
                 f'{self.prefix_dhcp4}_addresses_total',
                 'Size of subnet address pool',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'reservation_conflicts_total': Gauge(
                 f'{self.prefix_dhcp4}_reservation_conflicts_total',
                 'Reservation conflict count',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
         }
 
         self.metrics_dhcp4_map = {
@@ -161,7 +161,7 @@ class BaseExporter:
                 }
             },
 
-            # per Subnet
+            # per Subnet or pool
             'v4-allocation-fail-subnet' :{
                 'metric' : 'addresses_allocation_fail',
                 'labels': {
@@ -257,48 +257,48 @@ class BaseExporter:
                 ['operation']
             ),
 
-            # per Subnet
+            # per Subnet or pool
             'addresses_allocation_fail': Gauge(
                 f'{self.prefix_dhcp6}_allocations_failed_total',
                 'Allocation fail count',
-                ['subnet', 'subnet_id', 'context',]),
+                ['subnet', 'subnet_id', 'pool', 'context',]),
             'addresses_declined_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_total',
                 'Declined addresses',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_declined_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_declined_reclaimed_total',
                 'Declined addresses that were reclaimed',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'addresses_reclaimed_total': Gauge(
                 f'{self.prefix_dhcp6}_addresses_reclaimed_total',
                 'Expired addresses that were reclaimed',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'reservation_conflicts_total': Gauge(
                 f'{self.prefix_dhcp6}_reservation_conflicts_total',
                 'Reservation conflict count',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
 
             # IA_NA
             'na_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_na_assigned_total',
                 'Assigned non-temporary addresses (IA_NA)',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'na_total': Gauge(
                 f'{self.prefix_dhcp6}_na_total',
                 'Size of non-temporary address pool',
-                ['subnet', 'subnet_id']
+                ['subnet', 'subnet_id', 'pool']
             ),
 
             # IA_PD
             'pd_assigned_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_assigned_total',
                 'Assigned prefix delegations (IA_PD)',
-                ['subnet', 'subnet_id']),
+                ['subnet', 'subnet_id', 'pool']),
             'pd_total': Gauge(
                 f'{self.prefix_dhcp6}_pd_total',
                 'Size of prefix delegation pool',
-                ['subnet', 'subnet_id']
+                ['subnet', 'subnet_id', 'pool']
             ),
 
         }

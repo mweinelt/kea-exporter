@@ -39,9 +39,9 @@ class KeaHTTPExporter(BaseExporter):
         config = r.json()
         for module in config:
             for subnet in (module.get('arguments', {}).get('Dhcp4', {}).get('subnet4', {})):
-                self.subnets.update( {subnet['id']: subnet['subnet']} )
+                self.subnets.update( {subnet['id']: {"subnet": subnet['subnet'], "pools": [pool["pool"] for pool in subnet['pools']]}} )
             for subnet in (module.get('arguments', {}).get('Dhcp6', {}).get('subnet6', {})):
-                self.subnets6.update( {subnet['id']: subnet['subnet']} )
+                self.subnets6.update( {subnet['id']: {"subnet": subnet['subnet'], "pools": [pool["pool"] for pool in subnet['pools']]}} )
 
 
     def update(self):
@@ -66,39 +66,58 @@ class KeaHTTPExporter(BaseExporter):
                 else:
                     continue
 
-                value, timestamp = data[0]
+                value, _ = data[0]
                 labels = {}
-                if key.startswith('subnet['):
-                    match = self.subnet_pattern.match(key)
+                subnet_match = self.subnet_pattern.match(key)
+                if subnet_match:
+                    subnet_id = int(subnet_match.group('subnet_id'))
+                    pool_index = subnet_match.group('pool_index')
+                    pool_metric = subnet_match.group('pool_metric')
+                    subnet_metric = subnet_match.group('subnet_metric')
 
-                    if match:
-                        subnet_id = int(match.group('subnet_id'))
-
-                        key = match.group('metric')
-                        if module == 'dhcp4':
-                            subnet = self.subnets.get(subnet_id)
-                        elif module == 'dhcp6':
-                            subnet = self.subnets6.get(subnet_id)
-                        else:
-                            continue
                     
-                        try:
-                            subnet = self.subnets[subnet_id]
-                        except KeyError:
-                            if subnet_id not in self.subnet_missing_info_sent.get(module, []):
-                                self.subnet_missing_info_sent.get(module, []).append(subnet_id)
+                    if module == 'dhcp4':
+                        subnet_data = self.subnets.get(subnet_id, {})
+                    elif module == 'dhcp6':
+                        subnet_data = self.subnets6.get(subnet_id, {})
+
+                    if not subnet_data:
+                        if subnet_id not in self.subnet_missing_info_sent.get(module, []):
+                            self.subnet_missing_info_sent.get(module, []).append(subnet_id)
+                            click.echo(
+                                f"The subnet with id {subnet_id} on module {module} appeared in statistics "
+                                f"but is not part of the configuration anymore! Ignoring.",
+                                file=sys.stderr
+                            )
+                        continue
+                    
+                    labels['subnet'] = subnet_data.get("subnet")
+                    labels['subnet_id'] = subnet_id
+
+                    # Check if subnet matches the pool_index
+                    if pool_index:
+                        # Matched for subnet pool metrics
+                        pool_index = int(pool_index)
+                        subnet_pools = subnet_data.get("pools", [])
+
+                        if len(subnet_pools) <= pool_index:
+                            if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(module, []):
+                                self.subnet_missing_info_sent.get(module, []).append(f"{subnet_id}-{pool_index}")
                                 click.echo(
-                                    f"The subnet with id {subnet_id} on module {module} appeared in statistics "
+                                    f"The subnet with id {subnet_id} and pool_index {pool_index} on module {module} appeared in statistics "
                                     f"but is not part of the configuration anymore! Ignoring.",
                                     file=sys.stderr
                                 )
                             continue
-
-                        labels['subnet'] = subnet
-                        labels['subnet_id'] = subnet_id
+                        key = pool_metric
+                        labels["pool"] = subnet_pools[pool_index]
                     else:
-                        print('subnet pattern failed for metric: {0}'.format(
-                            key), file=sys.stderr)
+                        # Matched for subnet metrics
+                        key = subnet_metric
+                        labels["pool"] = ""
+                        
+                    
+                    
 
                 if module == 'dhcp4':
                     metrics_map = self.metrics_dhcp4_map
@@ -116,7 +135,10 @@ class KeaHTTPExporter(BaseExporter):
                         click.echo(f"Unhandled metric '{key}', please open an issue at https://github.com/mweinelt/kea-exporter/issues")
                         self.unhandled_metrics.add(key)
                     continue
+                    
 
+                
+                
                 metric = metrics[metric_info['metric']]
 
                 # merge static and dynamic labels

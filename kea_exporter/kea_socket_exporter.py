@@ -90,42 +90,63 @@ class KeaSocketExporter(BaseExporter):
                 else:
                     continue
 
-                value, timestamp = data[0]
+                value, _ = data[0]
                 labels = {}
 
                 # Additional matching is required when we encounter a subnet
                 # metric.
-                if key.startswith('subnet['):
-                    match = self.subnet_pattern.match(key)
-                    if match:
-                        subnet_id = int(match.group('subnet_id'))
-                        key = match.group('metric')
+                subnet_match = self.subnet_pattern.match(key)
+                if subnet_match:
+                    subnet_id = int(subnet_match.group('subnet_id'))
+                    pool_index = subnet_match.group('pool_index')
+                    pool_metric = subnet_match.group('pool_metric')
+                    subnet_metric = subnet_match.group('subnet_metric')
 
-                        if kea.dhcp_version is DHCPVersion.DHCP4:
-                            if key in self.metric_dhcp4_subnet_ignore:
-                                continue
-                        elif kea.dhcp_version is DHCPVersion.DHCP6:
-                            if key in self.metric_dhcp6_subnet_ignore:
-                                continue
-                        else:
+                    if kea.dhcp_version is DHCPVersion.DHCP4:
+                        if key in self.metric_dhcp4_subnet_ignore:
                             continue
+                    elif kea.dhcp_version is DHCPVersion.DHCP6:
+                        if key in self.metric_dhcp6_subnet_ignore:
+                            continue
+                    else:
+                        continue
 
-                        try:
-                            subnet = kea.subnets[subnet_id]
-                        except KeyError:
-                            if subnet_id not in kea.subnet_missing_info_sent:
-                                kea.subnet_missing_info_sent.append(subnet_id)
+                    try:
+                        subnet_data = kea.subnets[subnet_id]
+                    except KeyError:
+                        if subnet_id not in kea.subnet_missing_info_sent:
+                            kea.subnet_missing_info_sent.append(subnet_id)
+                            click.echo(
+                                f"The subnet with id {subnet_id} on socket {kea.sock_path} appeared in statistics "
+                                f"but is not part of the configuration anymore! Ignoring.",
+                                file=sys.stderr
+                            )
+                        continue
+                    
+                    labels['subnet'] = subnet_data.get('subnet')
+                    labels['subnet_id'] = subnet_id
+
+                    # Check if subnet matches the pool_index
+                    if pool_index:
+                        # Matched for subnet pool metrics
+                        pool_index = int(pool_index)
+                        subnet_pools = subnet_data.get("pools", [])
+                        
+                        if len(subnet_pools) <= pool_index:
+                            if f"{subnet_id}-{pool_index}" not in kea.subnet_missing_info_sent:
+                                kea.subnet_missing_info_sent.append(f"{subnet_id}-{pool_index}")
                                 click.echo(
-                                    f"The subnet with id {subnet_id} on socket {kea.sock_path} appeared in statistics "
+                                    f"The subnet with id {subnet_id} and pool_index {pool_index} on socket {kea.sock_path} appeared in statistics "
                                     f"but is not part of the configuration anymore! Ignoring.",
                                     file=sys.stderr
                                 )
                             continue
-                        labels['subnet'] = subnet['subnet']
-                        labels['subnet_id'] = subnet_id
+                        key = pool_metric
+                        labels["pool"] = subnet_pools[pool_index]
                     else:
-                        click.echo(f'subnet pattern failed for metric: {key}',
-                                   file=sys.stderr)
+                        # Matched for subnet metrics
+                        key = subnet_metric
+                        labels["pool"] = ""
 
                 if kea.dhcp_version is DHCPVersion.DHCP4:
                     metrics_map = self.metrics_dhcp4_map
