@@ -553,7 +553,7 @@ class BaseExporter:
                     if subnet_id not in self.subnet_missing_info_sent.get(dhcp_version, []):
                         self.subnet_missing_info_sent.get(dhcp_version, []).append(subnet_id)
                         click.echo(
-                            f"The subnet with id {subnet_id}, dhcp_version: {dhcp_version.name}, appeared in statistics "
+                            f"The subnet_id: {subnet_id}, dhcp_version: {dhcp_version.name}, appeared in statistics "
                             f"but is not part of the configuration anymore! Ignoring.",
                             file=sys.stderr
                         )
@@ -572,7 +572,7 @@ class BaseExporter:
                         if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(dhcp_version, []):
                             self.subnet_missing_info_sent.get(dhcp_version, []).append(f"{subnet_id}-{pool_index}")
                             click.echo(
-                                f"The subnet with id {subnet_id} and pool_index {pool_index}, dhcp_version: {dhcp_version.name}, appeared in statistics "
+                                f"The subnet_id: {subnet_id}, pool_index: {pool_index}, dhcp_version: {dhcp_version.name}, appeared in statistics "
                                 f"but is not part of the configuration anymore! Ignoring.",
                                 file=sys.stderr
                             )
