@@ -1,14 +1,11 @@
-import sys
 import requests
 
-import click
-
 from .base_exporter import BaseExporter
-
 
 class KeaHTTPExporter(BaseExporter):
     def __init__(self, target, **kwargs):
         super().__init__()
+
         self._target = target
 
         self.modules = []
