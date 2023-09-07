@@ -531,10 +531,10 @@ class BaseExporter:
                 subnet_metric = subnet_match.group('subnet_metric')
 
                 if dhcp_version is self.DHCPVersion.DHCP4:
-                    if key in self.metric_dhcp4_subnet_ignore:
+                    if pool_metric in self.metric_dhcp4_subnet_ignore or subnet_metric in self.metric_dhcp4_subnet_ignore:
                         continue
                 elif dhcp_version is self.DHCPVersion.DHCP6:
-                    if key in self.metric_dhcp6_subnet_ignore:
+                    if pool_metric in self.metric_dhcp6_subnet_ignore or subnet_metric in self.metric_dhcp6_subnet_ignore:
                         continue
                 else:
                     continue
