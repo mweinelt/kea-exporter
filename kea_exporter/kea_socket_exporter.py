@@ -73,5 +73,4 @@ class KeaSocketExporter(BaseExporter):
 
     def update(self):
         for kea in self.kea_instances:
-            kea.dhcp_version
             self.parse_metrics(kea.dhcp_version, kea.stats().get('arguments'), kea.subnets)
