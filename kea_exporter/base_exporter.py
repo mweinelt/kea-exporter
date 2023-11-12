@@ -207,7 +207,7 @@ class BaseExporter:
             },
 
             'v4-lease-reuses': {
-                'metric' : 'reused_leases',
+                'metric' : 'leases_reused_total',
             },
 
             'assigned-addresses': {
