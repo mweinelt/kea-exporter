@@ -45,9 +45,7 @@ class BaseExporter:
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
             # Packets
-            "sent_packets": Gauge(
-                f"{self.prefix_dhcp4}_packets_sent_total", "Packets sent", ["operation"]
-            ),
+            "sent_packets": Gauge(f"{self.prefix_dhcp4}_packets_sent_total", "Packets sent", ["operation"]),
             "received_packets": Gauge(
                 f"{self.prefix_dhcp4}_packets_received_total",
                 "Packets received",
@@ -225,9 +223,7 @@ class BaseExporter:
     def setup_dhcp6_metrics(self):
         self.metrics_dhcp6 = {
             # Packets sent/received
-            "sent_packets": Gauge(
-                f"{self.prefix_dhcp6}_packets_sent_total", "Packets sent", ["operation"]
-            ),
+            "sent_packets": Gauge(f"{self.prefix_dhcp6}_packets_sent_total", "Packets sent", ["operation"]),
             "received_packets": Gauge(
                 f"{self.prefix_dhcp6}_packets_received_total",
                 "Packets received",
@@ -481,12 +477,8 @@ class BaseExporter:
 
                 subnet_data = subnets.get(subnet_id, [])
                 if not subnet_data:
-                    if subnet_id not in self.subnet_missing_info_sent.get(
-                        dhcp_version, []
-                    ):
-                        self.subnet_missing_info_sent.get(dhcp_version, []).append(
-                            subnet_id
-                        )
+                    if subnet_id not in self.subnet_missing_info_sent.get(dhcp_version, []):
+                        self.subnet_missing_info_sent.get(dhcp_version, []).append(subnet_id)
                         click.echo(
                             "Ignoring metric because subnet vanished from configuration:",
                             f"\tdhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}",
@@ -501,18 +493,11 @@ class BaseExporter:
                 if pool_index:
                     # Matched for subnet pool metrics
                     pool_index = int(pool_index)
-                    subnet_pools = [
-                        pool.get("pool") for pool in subnet_data.get("pools", [])
-                    ]
+                    subnet_pools = [pool.get("pool") for pool in subnet_data.get("pools", [])]
 
                     if len(subnet_pools) <= pool_index:
-                        if (
-                            f"{subnet_id}-{pool_index}"
-                            not in self.subnet_missing_info_sent.get(dhcp_version, [])
-                        ):
-                            self.subnet_missing_info_sent.get(dhcp_version, []).append(
-                                f"{subnet_id}-{pool_index}"
-                            )
+                        if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(dhcp_version, []):
+                            self.subnet_missing_info_sent.get(dhcp_version, []).append(f"{subnet_id}-{pool_index}")
                             click.echo(
                                 "Ignoring metric because subnet vanished from configuration:",
                                 f"\tdhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}, pool_idx: {pool_index}",
@@ -551,9 +536,7 @@ class BaseExporter:
             labels.update(metric_info.get("labels", {}))
 
             # Filter labels that are not configured for the metric
-            labels = {
-                key: val for key, val in labels.items() if key in metric._labelnames
-            }
+            labels = {key: val for key, val in labels.items() if key in metric._labelnames}
 
             # export labels and value
             metric.labels(**labels).set(value)

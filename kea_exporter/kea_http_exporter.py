@@ -24,9 +24,7 @@ class KeaHTTPExporter(BaseExporter):
         )
         config = r.json()
         for module in config[0]["arguments"]["Control-agent"]["control-sockets"]:
-            if (
-                "dhcp" in module
-            ):  # Does not support d2 metrics. # Does not handle ctrl sockets that are offline
+            if "dhcp" in module:  # Does not support d2 metrics. # Does not handle ctrl sockets that are offline
                 self.modules.append(module)
 
     def load_subnets(self):
@@ -37,13 +35,9 @@ class KeaHTTPExporter(BaseExporter):
         )
         config = r.json()
         for module in config:
-            for subnet in (
-                module.get("arguments", {}).get("Dhcp4", {}).get("subnet4", {})
-            ):
+            for subnet in module.get("arguments", {}).get("Dhcp4", {}).get("subnet4", {}):
                 self.subnets.update({subnet["id"]: subnet})
-            for subnet in (
-                module.get("arguments", {}).get("Dhcp6", {}).get("subnet6", {})
-            ):
+            for subnet in module.get("arguments", {}).get("Dhcp6", {}).get("subnet6", {}):
                 self.subnets6.update({subnet["id"]: subnet})
 
     def update(self):
