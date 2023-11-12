@@ -82,8 +82,8 @@ class BaseExporter:
                 f'{self.prefix_dhcp4}_reservation_conflicts_total',
                 'Reservation conflict count',
                 ['subnet', 'subnet_id']),
-            'reused_leases': Gauge(
-                f'{self.prefix_dhcp4}_reused_leases',
+            'leases_reused_total': Gauge(
+                f'{self.prefix_dhcp4}_leases_reused_total',
                 'Number of times an IPv4 lease had its CLTT increased in memory and its expiration time left unchanged in persistent storage as part of the lease caching feature.',
                 ['subnet', 'subnet_id']),
         }
