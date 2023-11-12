@@ -23,9 +23,7 @@ class KeaSocket:
             )
             sys.exit(1)
         except PermissionError:
-            click.echo(
-                f"Socket at {sock_path} is not read-/writeable.", file=sys.stderr
-            )
+            click.echo(f"Socket at {sock_path} is not read-/writeable.", file=sys.stderr)
             sys.exit(1)
 
         self.version = None
@@ -81,6 +79,4 @@ class KeaSocketExporter(BaseExporter):
 
     def update(self):
         for kea in self.kea_instances:
-            self.parse_metrics(
-                kea.dhcp_version, kea.stats().get("arguments"), kea.subnets
-            )
+            self.parse_metrics(kea.dhcp_version, kea.stats().get("arguments"), kea.subnets)
