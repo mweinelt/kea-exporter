@@ -1,6 +1,6 @@
 [build-system]
-requires = ["pdm-pep517>=1.0.0"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 # PEP 621 project metadata
@@ -44,12 +44,8 @@ repository = "https://github.com/mweinelt/kea-exporter.git"
 [project.scripts]
 kea-exporter = "kea_exporter.__main__:cli"
 
-[project.optional-dependencies]
-[tool.pdm]
-[tool.pdm.dev-dependencies]
-dev = [
-    "isort>=5.10.1",
-]
+[tool.black]
+line-length = 120
 
-[tool.pdm.build]
-includes = []
+[tool.ruff]
+line-length = 120
