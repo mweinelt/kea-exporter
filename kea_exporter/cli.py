@@ -50,14 +50,14 @@ from . import __PROJECT__, __VERSION__
     envvar="CLIENT_CERT",
     type=str,
     help="Client certificate file path used in HTTP mode with mTLS",
-    required=False
+    required=False,
 )
 @click.option(
     "--client-key",
     envvar="CLIENT_KEY",
     type=str,
     help="Client key file path used in HTTP mode with mTLS",
-    required=False
+    required=False,
 )
 @click.argument("sockets", envvar="SOCKETS", nargs=-1, required=False)
 @click.version_option(prog_name=__PROJECT__, version=__VERSION__)

@@ -9,7 +9,10 @@ class KeaHTTPExporter(BaseExporter):
 
         self._target = target
         if client_cert and client_key:
-            self._cert = (client_cert, client_key,)
+            self._cert = (
+                client_cert,
+                client_key,
+            )
         else:
             self._cert = None
 
