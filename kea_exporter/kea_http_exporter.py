@@ -4,10 +4,14 @@ from .base_exporter import BaseExporter
 
 
 class KeaHTTPExporter(BaseExporter):
-    def __init__(self, target, **kwargs):
+    def __init__(self, target, client_cert, client_key, **kwargs):
         super().__init__()
 
         self._target = target
+        if client_cert and client_key:
+            self._cert = (client_cert, client_key,)
+        else:
+            self._cert = None
 
         self.modules = []
         self.subnets = {}
@@ -19,6 +23,7 @@ class KeaHTTPExporter(BaseExporter):
     def load_modules(self):
         r = requests.post(
             self._target,
+            cert=self._cert,
             json={"command": "config-get"},
             headers={"Content-Type": "application/json"},
         )
@@ -30,6 +35,7 @@ class KeaHTTPExporter(BaseExporter):
     def load_subnets(self):
         r = requests.post(
             self._target,
+            cert=self._cert,
             json={"command": "config-get", "service": self.modules},
             headers={"Content-Type": "application/json"},
         )
@@ -46,6 +52,7 @@ class KeaHTTPExporter(BaseExporter):
         # Note for future testing: pipe curl output to jq for an easier read
         r = requests.post(
             self._target,
+            cert=self._cert,
             json={
                 "command": "statistic-get-all",
                 "arguments": {},
