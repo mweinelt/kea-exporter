@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.title=kea-exporter
+LABEL org.opencontainers.image.description="Prometheus Exporter for the ISC Kea DHCP Server"
+LABEL org.opencontainers.image.url=https://github.com/mweinelt/kea-exporter
+LABEL org.opencontainers.image.licenses=MIT
+
 RUN groupadd -g 1000 kea-exporter && useradd -m -u 1000 -g 1000 kea-exporter
 
 WORKDIR /usr/src/app
