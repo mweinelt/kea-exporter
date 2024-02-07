@@ -480,8 +480,8 @@ class BaseExporter:
                     if subnet_id not in self.subnet_missing_info_sent.get(dhcp_version, []):
                         self.subnet_missing_info_sent.get(dhcp_version, []).append(subnet_id)
                         click.echo(
-                            "Ignoring metric because subnet vanished from configuration:",
-                            f"\tdhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}",
+                            "Ignoring metric because subnet vanished from configuration: "
+                            f"dhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}",
                             file=sys.stderr,
                         )
                     continue
@@ -499,8 +499,8 @@ class BaseExporter:
                         if f"{subnet_id}-{pool_index}" not in self.subnet_missing_info_sent.get(dhcp_version, []):
                             self.subnet_missing_info_sent.get(dhcp_version, []).append(f"{subnet_id}-{pool_index}")
                             click.echo(
-                                "Ignoring metric because subnet vanished from configuration:",
-                                f"\tdhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}, pool_idx: {pool_index}",
+                                "Ignoring metric because subnet vanished from configuration: "
+                                f"dhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}, pool_idx: {pool_index}",
                                 file=sys.stderr,
                             )
                         continue
