@@ -16,7 +16,8 @@ RUN chown -R kea-exporter:kea-exporter /usr/src/app
 
 USER 1000:1000
 
-COPY . .
+COPY pyproject.toml README.rst pdm.lock ./
+COPY kea_exporter ./kea_exporter
 
 RUN pip install --user --no-cache-dir -e .
 
