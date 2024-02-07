@@ -85,11 +85,11 @@ Usage
 
 You can also configure the exporter using environment variables :
 ::
-   MODE
-   ADDRESS
-   PORT
-   INTERVAL
-   TARGET
+   export MODE="http"
+   export ADDRESS="0.0.0.0"
+   export PORT="9547"
+   export INTERVAL="7.5"
+   export TARGET="http://kea"
 
 
 Configure Control Socket
