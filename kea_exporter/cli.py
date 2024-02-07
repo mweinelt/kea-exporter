@@ -45,6 +45,20 @@ from . import __PROJECT__, __VERSION__
     type=str,
     help="Target address and port of Kea server, e.g. http://kea.example.com:8080.",
 )
+@click.option(
+    "--client-cert",
+    envvar="CLIENT_CERT",
+    type=str,
+    help="Client certificate file path used in HTTP mode with mTLS",
+    required=False,
+)
+@click.option(
+    "--client-key",
+    envvar="CLIENT_KEY",
+    type=str,
+    help="Client key file path used in HTTP mode with mTLS",
+    required=False,
+)
 @click.argument("sockets", envvar="SOCKETS", nargs=-1, required=False)
 @click.version_option(prog_name=__PROJECT__, version=__VERSION__)
 def cli(mode, port, address, interval, **kwargs):
