@@ -38,7 +38,7 @@ Features
 --------
 
 - DHCP4 & DHCP6 Metrics (tested against Kea 1.6.0)
-- Configuration and statistics via control socket
+- Configuration and statistics via control socket or http api
 
 Currently not working:
 
@@ -50,7 +50,6 @@ Known Limitations
 
 The following features are not supported yet, help is welcome.
 
-- HTTP REST API (as a means to query a Kea instance)
 - Shared Networks
 - Custom Subnet Identifiers
 
@@ -62,11 +61,17 @@ Usage
     Usage: kea-exporter [OPTIONS] SOCKETS...
 
     Options:
-      --address TEXT      Specify the address to bind against.
-      --port INTEGER      Specify the port on which to listen.
-      --interval INTEGER  Specify the metrics update interval in seconds.
-      --version           Show the version and exit.
-      --help              Show this message and exit.
+    -m, --mode [socket|http]  Select mode.
+    -a, --address TEXT        Specify the address to bind against.
+    -p, --port INTEGER        Specify the port on which to listen.
+    -i, --interval INTEGER    Specify the metrics update interval in seconds.
+    -t, --target TEXT         Target address and port of Kea server, e.g.
+                               http://kea.example.com:8080.
+    --client-cert TEXT        Client certificate file path used in HTTP mode
+                               with mTLS
+    --client-key TEXT         Client key file path used in HTTP mode with mTLS
+    --version                 Show the version and exit.
+    --help                    Show this message and exit.
 
 
 
@@ -78,6 +83,11 @@ statistics. Consult the documentation on how to set up the control socket:
 
 - https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#management-api-for-the-dhcpv4-server
 - https://kea.readthedocs.io/en/latest/arm/dhcp6-srv.html#management-api-for-the-dhcpv6-server
+
+HTTPS
+///////////
+If you need to validate a self-signed certificate on a Kea instance, you can set `REQUESTS_CA_BUNDLE`
+environment variable to a bundle CA path.
 
 Permissions
 ///////////
