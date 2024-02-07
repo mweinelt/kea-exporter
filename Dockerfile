@@ -7,6 +7,8 @@ LABEL org.opencontainers.image.licenses=MIT
 
 RUN groupadd -g 1000 kea-exporter && useradd -m -u 1000 -g 1000 kea-exporter
 
+ENV PATH="/home/kea-exporter/.local/bin:${PATH}"
+
 WORKDIR /usr/src/app
 
 RUN chown -R kea-exporter:kea-exporter /usr/src/app
@@ -19,4 +21,4 @@ RUN pip install --user --no-cache-dir -e .
 
 EXPOSE 9547
 
-ENTRYPOINT ["python3", "-m", "kea_exporter"]
+ENTRYPOINT ["kea-exporter"]
