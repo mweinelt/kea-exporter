@@ -90,6 +90,8 @@ You can also configure the exporter using environment variables :
    export PORT="9547"
    export INTERVAL="7.5"
    export TARGET="http://kea"
+   export CLIENT_CERT="/etc/kea-exporter/client.crt"
+   export CLIENT_KEY="/etc/kea-exporter/client.key"
 
 
 Configure Control Socket
