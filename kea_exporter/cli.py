@@ -57,7 +57,7 @@ def cli(mode, port, address, interval, **kwargs):
     exporter.update()
 
     start_http_server(port, address)
-    click.echo("Listening on http://{0}:{1}".format(address, port))
+    click.echo(f"Listening on http://{address}:{port}")
 
     while True:
         time.sleep(interval)
