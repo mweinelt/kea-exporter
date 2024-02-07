@@ -37,7 +37,7 @@ and upgraded with:
 Docker
 --------
 
-A docker image is available and can be configured with environment variables see `Usage`
+A docker image is available and can be configured with environment variables see :ref:`_usage`
 
 ::
 
@@ -62,6 +62,7 @@ The following features are not supported yet, help is welcome.
 - Shared Networks
 - Custom Subnet Identifiers
 
+.. _usage:
 Usage
 -----
 
