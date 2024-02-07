@@ -500,7 +500,7 @@ class BaseExporter:
                             self.subnet_missing_info_sent.get(dhcp_version, []).append(f"{subnet_id}-{pool_index}")
                             click.echo(
                                 "Ignoring metric because subnet vanished from configuration: "
-                                f"dhcp_version: {dhcp_version.name}, subnet_id: {subnet_id}, pool_idx: {pool_index}",
+                                f"{dhcp_version.name=}, {subnet_id=}, {pool_index=}",
                                 file=sys.stderr,
                             )
                         continue
