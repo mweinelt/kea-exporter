@@ -37,7 +37,7 @@ and upgraded with:
 Docker
 --------
 
-A docker image is available and can be configured with environment variables see :ref:`_usage`
+A docker image is available and can be configured with environment variables see :ref:`usage`
 
 ::
 
