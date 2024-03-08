@@ -46,6 +46,11 @@ class KeaHTTPExporter(BaseExporter):
         for module in config:
             for subnet in module.get("arguments", {}).get("Dhcp4", {}).get("subnet4", {}):
                 self.subnets.update({subnet["id"]: subnet})
+            self.subnets += [
+                subnet
+                for shared_network in self.config["Dhcp4"].get("shared-networks", [])
+                for subnet in shared_network["subnet4"]
+            ]
             for subnet in module.get("arguments", {}).get("Dhcp6", {}).get("subnet6", {}):
                 self.subnets6.update({subnet["id"]: subnet})
 

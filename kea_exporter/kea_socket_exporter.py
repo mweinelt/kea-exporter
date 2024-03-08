@@ -56,6 +56,11 @@ class KeaSocket:
         if "Dhcp4" in self.config:
             self.dhcp_version = BaseExporter.DHCPVersion.DHCP4
             subnets = self.config["Dhcp4"]["subnet4"]
+            subnets += [
+                subnet
+                for shared_network in self.config["Dhcp4"].get("shared-networks", [])
+                for subnet in shared_network["subnet4"]
+            ]
         elif "Dhcp6" in self.config:
             self.dhcp_version = BaseExporter.DHCPVersion.DHCP6
             subnets = self.config["Dhcp6"]["subnet6"]
