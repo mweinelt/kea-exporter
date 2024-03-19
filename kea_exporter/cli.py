@@ -1,7 +1,7 @@
 import time
 
 import click
-from prometheus_client import start_http_server
+from prometheus_client import REGISTRY, make_wsgi_app, start_http_server
 
 from . import __project__, __version__
 
@@ -35,7 +35,7 @@ from . import __project__, __version__
     "--interval",
     envvar="INTERVAL",
     type=int,
-    default=7.5,
+    default=0,
     help="Specify the metrics update interval in seconds.",
 )
 @click.option(
@@ -70,13 +70,27 @@ def cli(mode, port, address, interval, **kwargs):
     exporter = KeaExporter(**kwargs)
     exporter.update()
 
-    start_http_server(port, address)
+    httpd, _ = start_http_server(port, address)
+
+    
+    def local_wsgi_app(registry):
+        func = make_wsgi_app(registry, False)
+        def app(environ, start_response):
+            if interval == 0:
+                exporter.update()
+            output_array = func(environ, start_response)
+            return output_array
+        return app
+
+    httpd.set_app(local_wsgi_app(REGISTRY))
+
     click.echo(f"Listening on http://{address}:{port}")
 
     while True:
-        time.sleep(interval)
-        exporter.update()
-
+        if interval:
+            time.sleep(interval)
+        else:
+            time.sleep(1)
 
 if __name__ == "__main__":
     cli()
