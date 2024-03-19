@@ -83,8 +83,10 @@ Usage
     --help                    Show this message and exit.
 
 
-You can also configure the exporter using environment variables :
+You can also configure the exporter using environment variables:
+
 ::
+
    export MODE="http"
    export ADDRESS="0.0.0.0"
    export PORT="9547"
