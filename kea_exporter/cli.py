@@ -81,7 +81,7 @@ def cli(mode, port, address, interval, **kwargs):
 
     httpd, _ = start_http_server(port, address)
 
-    t = timer()
+    t = Timer()
 
     def local_wsgi_app(registry):
         func = make_wsgi_app(registry, False)
