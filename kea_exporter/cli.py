@@ -6,13 +6,14 @@ from prometheus_client import REGISTRY, make_wsgi_app, start_http_server
 from . import __project__, __version__
 
 
-class counter():
+class timer():
     def __init__(self):
-        self.new_start()
-    def new_start(self):
+        self.reset()
+    def reset(self):
         self.start_time = time.time()
     def time_elapsed(self):
-        return time.time() - self.start_time
+        now_time = time.time()
+        return now_time - self.start_time
 
 @click.command()
 @click.option(
@@ -80,14 +81,14 @@ def cli(mode, port, address, interval, **kwargs):
 
     httpd, _ = start_http_server(port, address)
 
-    c = counter()
+    t = timer()
 
     def local_wsgi_app(registry):
         func = make_wsgi_app(registry, False)
         def app(environ, start_response):
-            if c.time_elapsed() >= interval:
+            if t.time_elapsed() >= interval:
                 exporter.update()
-                c.new_start()
+                t.reset()
             output_array = func(environ, start_response)
             return output_array
         return app
