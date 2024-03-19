@@ -7,7 +7,12 @@ dist
 *.swp
 .ropeproject
 .idea/
-venv/
 
 .pdm.toml
+.pdm-python
 __pypackages__
+
+.pre-commit-config.yaml
+
+.direnv
+.venv
