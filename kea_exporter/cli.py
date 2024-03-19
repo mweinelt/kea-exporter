@@ -89,6 +89,7 @@ def cli(mode, port, address, interval, **kwargs):
     while True:
         if interval:
             time.sleep(interval)
+            exporter.update()
         else:
             time.sleep(1)
 
