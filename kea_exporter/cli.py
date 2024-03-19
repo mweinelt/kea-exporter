@@ -45,7 +45,7 @@ class Timer():
     envvar="INTERVAL",
     type=int,
     default=0,
-    help="Specify the metrics update interval in seconds.",
+    help="Minimal interval between two queries to Kea in seconds.",
 )
 @click.option(
     "-t",
