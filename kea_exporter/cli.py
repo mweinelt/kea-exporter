@@ -85,7 +85,7 @@ def cli(mode, port, address, interval, **kwargs):
     def local_wsgi_app(registry):
         func = make_wsgi_app(registry, False)
         def app(environ, start_response):
-            if interval < c.time_elapsed():
+            if c.time_elapsed() >= interval:
                 exporter.update()
                 c.new_start()
             output_array = func(environ, start_response)
