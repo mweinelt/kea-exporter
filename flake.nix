@@ -7,22 +7,28 @@
 
   outputs = { self, nixpkgs, pre-commit-hooks, flake-utils }:
     flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
       {
         checks = {
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
-              black.enable = true;
               isort.enable = true;
-              ruff.enable = false; # ignores line-length :(
+              ruff.enable = false;
+              ruff-format = {
+                enable = true;
+                entry = "${pkgs.ruff}/bin/ruff format";
+                pass_filenames = false;
+              };
             };
           };
         };
-        devShells.default = with nixpkgs.legacyPackages.${system}; mkShell {
+        devShells.default = with pkgs; mkShell {
           inherit (self.checks.${system}.pre-commit-check) shellHook;
 
           buildInputs = [
-            black
             isort
             pdm
             ruff
