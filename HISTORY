@@ -1,3 +1,6 @@
+0.6.1
+ - Fix package version
+
 0.6.0
  - Provide docker image for arm64, x86_64
  - Add support for HTTPS client certificates (@M0NsTeRRR)

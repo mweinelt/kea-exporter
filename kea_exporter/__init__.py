@@ -1,2 +1,2 @@
-__PROJECT__ = "kea-exporter"
-__VERSION__ = "0.5.1"
+__project__ = "kea-exporter"
+__version__ = "0.6.1"

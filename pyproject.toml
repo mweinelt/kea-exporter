@@ -6,7 +6,7 @@ build-backend = "pdm.backend"
 # PEP 621 project metadata
 # See https://www.python.org/dev/peps/pep-0621/
 name = "kea-exporter"
-version = "0.6.0"
+dynamic = [ "version" ]
 description = "Export Kea Metrics in the Prometheus Exposition Format"
 authors = [
     { name = "Martin Weinelt", email = "hexa@darmstadt.ccc.de" },
@@ -45,6 +45,10 @@ repository = "https://github.com/mweinelt/kea-exporter.git"
 
 [project.scripts]
 kea-exporter = "kea_exporter.__main__:cli"
+
+[tool.pdm.version]
+source = "file"
+path = "kea_exporter/__init__.py"
 
 [tool.black]
 line-length = 120

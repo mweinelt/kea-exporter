@@ -3,7 +3,7 @@ import time
 import click
 from prometheus_client import start_http_server
 
-from . import __PROJECT__, __VERSION__
+from . import __project__, __version__
 
 
 @click.command()
@@ -60,7 +60,7 @@ from . import __PROJECT__, __VERSION__
     required=False,
 )
 @click.argument("sockets", envvar="SOCKETS", nargs=-1, required=False)
-@click.version_option(prog_name=__PROJECT__, version=__VERSION__)
+@click.version_option(prog_name=__project__, version=__version__)
 def cli(mode, port, address, interval, **kwargs):
     if mode == "socket":
         from .kea_socket_exporter import KeaSocketExporter as KeaExporter
