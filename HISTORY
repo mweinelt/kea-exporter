@@ -1,3 +1,9 @@
+0.6.0
+ - Provide docker image for arm64, x86_64
+ - Add support for HTTPS client certificates (@M0NsTeRRR)
+ - Add support for querying the HTTP API (@Qwiko)
+ - Migrate to `pdm-backend`
+
 0.5.1
  - Ignore global allocation fails in favor of per subnet ones (@glendekoning)
 
