@@ -6,7 +6,7 @@ from prometheus_client import REGISTRY, make_wsgi_app, start_http_server
 from . import __project__, __version__
 
 
-class timer():
+class Timer():
     def __init__(self):
         self.reset()
     def reset(self):
