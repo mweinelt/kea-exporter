@@ -6,6 +6,14 @@ from prometheus_client import REGISTRY, make_wsgi_app, start_http_server
 from . import __project__, __version__
 
 
+class counter():
+    def __init__(self):
+        self.new_start()
+    def new_start(self):
+        self.start_time = time.time()
+    def time_elapsed(self):
+        return time.time() - self.start_time
+
 @click.command()
 @click.option(
     "-m",
@@ -72,12 +80,14 @@ def cli(mode, port, address, interval, **kwargs):
 
     httpd, _ = start_http_server(port, address)
 
-    
+    c = counter()
+
     def local_wsgi_app(registry):
         func = make_wsgi_app(registry, False)
         def app(environ, start_response):
-            if interval == 0:
+            if interval < c.time_elapsed():
                 exporter.update()
+                c.new_start()
             output_array = func(environ, start_response)
             return output_array
         return app
@@ -87,11 +97,7 @@ def cli(mode, port, address, interval, **kwargs):
     click.echo(f"Listening on http://{address}:{port}")
 
     while True:
-        if interval:
-            time.sleep(interval)
-            exporter.update()
-        else:
-            time.sleep(1)
+        time.sleep(1)
 
 if __name__ == "__main__":
     cli()
