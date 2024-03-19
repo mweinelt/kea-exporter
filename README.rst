@@ -34,6 +34,15 @@ and upgraded with:
 
     $ pip install --upgrade kea-exporter
 
+Docker
+--------
+
+A docker image is available and can be configured with environment variables see usage section
+
+::
+
+    $ docker pull ghcr.io/mweinelt/kea-exporter
+
 Features
 --------
 
@@ -58,7 +67,7 @@ Usage
 
 ::
 
-    Usage: kea-exporter [OPTIONS] SOCKETS...
+    Usage: kea-exporter [OPTIONS] [SOCKETS]...
 
     Options:
     -m, --mode [socket|http]  Select mode.
@@ -73,6 +82,16 @@ Usage
     --version                 Show the version and exit.
     --help                    Show this message and exit.
 
+
+You can also configure the exporter using environment variables :
+::
+   export MODE="http"
+   export ADDRESS="0.0.0.0"
+   export PORT="9547"
+   export INTERVAL="7.5"
+   export TARGET="http://kea"
+   export CLIENT_CERT="/etc/kea-exporter/client.crt"
+   export CLIENT_KEY="/etc/kea-exporter/client.key"
 
 
 Configure Control Socket
