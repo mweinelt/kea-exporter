@@ -73,7 +73,7 @@ Usage
     -m, --mode [socket|http]  Select mode.
     -a, --address TEXT        Specify the address to bind against.
     -p, --port INTEGER        Specify the port on which to listen.
-    -i, --interval INTEGER    Specify the metrics update interval in seconds.
+    -i, --interval INTEGER    Minimal interval between two queries to Kea in seconds.
     -t, --target TEXT         Target address and port of Kea server, e.g.
                                http://kea.example.com:8080.
     --client-cert TEXT        Client certificate file path used in HTTP mode
