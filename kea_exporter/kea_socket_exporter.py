@@ -64,6 +64,11 @@ class KeaSocket:
         elif "Dhcp6" in self.config:
             self.dhcp_version = BaseExporter.DHCPVersion.DHCP6
             subnets = self.config["Dhcp6"]["subnet6"]
+            subnets += [
+                subnet
+                for shared_network in self.config["Dhcp6"].get("shared-networks", [])
+                for subnet in shared_network["subnet6"]
+            ]
         else:
             click.echo(
                 f"Socket {self.sock_path} has no supported configuration",
