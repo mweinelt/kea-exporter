@@ -1,9 +1,9 @@
 import requests
 
-from .base_exporter import BaseExporter
+from kea_exporter import DHCPVersion
 
 
-class KeaHTTPExporter(BaseExporter):
+class KeaHTTPClient:
     def __init__(self, target, client_cert, client_key, **kwargs):
         super().__init__()
 
@@ -49,7 +49,7 @@ class KeaHTTPExporter(BaseExporter):
             for subnet in module.get("arguments", {}).get("Dhcp6", {}).get("subnet6", {}):
                 self.subnets6.update({subnet["id"]: subnet})
 
-    def update(self):
+    def stats(self):
         # Reload subnets on update in case of configurational update
         self.load_subnets()
         # Note for future testing: pipe curl output to jq for an easier read
@@ -67,14 +67,14 @@ class KeaHTTPExporter(BaseExporter):
 
         for index, module in enumerate(self.modules):
             if module == "dhcp4":
-                dhcp_version = self.DHCPVersion.DHCP4
+                dhcp_version = DHCPVersion.DHCP4
                 subnets = self.subnets
             elif module == "dhcp6":
-                dhcp_version = self.DHCPVersion.DHCP6
+                dhcp_version = DHCPVersion.DHCP6
                 subnets = self.subnets6
             else:
                 continue
 
             arguments = response[index].get("arguments", {})
 
-            self.parse_metrics(dhcp_version, arguments, subnets)
+            yield dhcp_version, arguments, subnets
