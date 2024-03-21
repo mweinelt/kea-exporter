@@ -1,4 +1,4 @@
-|license| |version|
+|license| |version| |pypi_version| |pypi_downloads|
 
 .. |license| image:: https://img.shields.io/github/license/mweinelt/kea-exporter
    :alt: GitHub license
@@ -6,6 +6,12 @@
 
 .. |version| image:: https://img.shields.io/github/v/tag/mweinelt/kea-exporter
    :alt: GitHub tag (latest SemVer)
+
+.. |pypi_version| image:: https://img.shields.io/pypi/v/kea-exporter
+   :alt: PyPI - Version
+
+.. |pypi_downloads| image:: https://img.shields.io/pypi/dm/kea-exporter
+   :alt: PyPI - Downloads
 
 kea-exporter
 ============
@@ -20,6 +26,7 @@ Installation
 
 .. image:: https://repology.org/badge/vertical-allrepos/kea-exporter.svg
    :alt: Package versions via repology.org
+   :target: https://repology.org/project/kea-exporter/versions
 
 The latest stable version can always be installed from PyPi:
 

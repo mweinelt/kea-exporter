@@ -22,6 +22,12 @@
                 entry = "${pkgs.ruff}/bin/ruff format";
                 pass_filenames = false;
               };
+              rstcheck = {
+                enable = true;
+                entry = "${pkgs.rstcheck}/bin/rstcheck";
+                pass_filenames = true;
+                files = "\\.rst$";
+              };
             };
           };
         };
