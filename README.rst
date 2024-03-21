@@ -46,7 +46,7 @@ A docker image is available and can be configured with environment variables see
 Features
 --------
 
-- DHCP4 & DHCP6 Metrics (tested against Kea 1.6.0)
+- DHCP4 & DHCP6 Metrics (tested against Kea 2.4.1)
 - Configuration and statistics via control socket or http api
 
 Currently not working:

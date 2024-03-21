@@ -281,6 +281,9 @@ class BaseExporter:
                 "Size of non-temporary address pool",
                 ["subnet", "subnet_id", "pool"],
             ),
+            "na_reuses_total": Gauge(
+                f"{self.prefix_dhcp6}_na_reuses_total", "Number of IA_NA lease reuses", ["subnet", "subnet_id", "pool"]
+            ),
             # IA_PD
             "pd_assigned_total": Gauge(
                 f"{self.prefix_dhcp6}_pd_assigned_total",
@@ -291,6 +294,9 @@ class BaseExporter:
                 f"{self.prefix_dhcp6}_pd_total",
                 "Size of prefix delegation pool",
                 ["subnet", "subnet_id"],
+            ),
+            "pd_reuses_total": Gauge(
+                f"{self.prefix_dhcp6}_pd_reuses_total", "Number of IA_PD lease reuses", ["subnet", "subnet_id", "pool"]
             ),
         }
 
@@ -410,6 +416,8 @@ class BaseExporter:
             "v6-reservation-conflicts": {
                 "metric": "reservation_conflicts_total",
             },
+            "v6-ia-na-lease-reuses": {"metric": "na_reuses_total"},
+            "v6-ia-pd-lease-reuses": {"metric": "pd_reuses_total"},
         }
 
         # Ignore list for Global level metrics
@@ -428,6 +436,8 @@ class BaseExporter:
             "v6-allocation-fail-shared-network",
             "v6-allocation-fail-no-pools",
             "v6-allocation-fail-classes",
+            "v6-ia-na-lease-reuses",
+            "v6-ia-pd-lease-reuses",
             "pkt6-sent",
             "pkt6-received",
         ]
