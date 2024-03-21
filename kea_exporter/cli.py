@@ -25,8 +25,9 @@ class Timer:
     "-a",
     "--address",
     envvar="ADDRESS",
+    type=str,
     default="0.0.0.0",
-    help="Specify the address to bind against.",
+    help="Address that the exporter binds to.",
 )
 @click.option(
     "-p",
@@ -34,7 +35,7 @@ class Timer:
     envvar="PORT",
     type=int,
     default=9547,
-    help="Specify the port on which to listen.",
+    help="Port that the exporter binds to.",
 )
 @click.option(
     "-i",
@@ -47,15 +48,15 @@ class Timer:
 @click.option(
     "--client-cert",
     envvar="CLIENT_CERT",
-    type=str,
-    help="Client certificate file path used in HTTP mode with mTLS",
+    type=click.Path(exists=True),
+    help="Path to client certificate used to in HTTP requests",
     required=False,
 )
 @click.option(
     "--client-key",
     envvar="CLIENT_KEY",
-    type=str,
-    help="Client key file path used in HTTP mode with mTLS",
+    type=click.Path(exists=True),
+    help="Path to client key used in HTTP requests",
     required=False,
 )
 @click.argument("targets", envvar="TARGETS", nargs=-1, required=True)
