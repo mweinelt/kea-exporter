@@ -65,6 +65,9 @@ The following features are not supported yet, help is welcome.
 Usage
 -----
 
+Pass one or multiple Unix Domain Socket path or HTTP Control-Agent URLs
+to the `kea-exporter` executable. All other options are optional.
+
 ::
 
 	Usage: python -m kea_exporter [OPTIONS] TARGETS...
