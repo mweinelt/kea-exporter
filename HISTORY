@@ -1,3 +1,8 @@
+0.6.2
+ - Repurpose interval to serve as a minimal time between querying Kea
+ - Require `prometheus-client>=0.20`
+ - Handle v6-ia-na-lease-reuse and v6-ia-pd-lease-reuse metrics
+
 0.6.1
  - Fix package version
 
