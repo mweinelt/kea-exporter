@@ -72,33 +72,31 @@ The following features are not supported yet, help is welcome.
 Usage
 -----
 
+Pass one or multiple Unix Domain Socket path or HTTP Control-Agent URLs
+to the `kea-exporter` executable. All other options are optional.
+
 ::
 
-    Usage: kea-exporter [OPTIONS] [SOCKETS]...
+	Usage: python -m kea_exporter [OPTIONS] TARGETS...
 
-    Options:
-    -m, --mode [socket|http]  Select mode.
-    -a, --address TEXT        Specify the address to bind against.
-    -p, --port INTEGER        Specify the port on which to listen.
-    -i, --interval INTEGER    Minimal interval between two queries to Kea in seconds.
-    -t, --target TEXT         Target address and port of Kea server, e.g.
-                               http://kea.example.com:8080.
-    --client-cert TEXT        Client certificate file path used in HTTP mode
-                               with mTLS
-    --client-key TEXT         Client key file path used in HTTP mode with mTLS
-    --version                 Show the version and exit.
-    --help                    Show this message and exit.
-
+	Options:
+	  -a, --address TEXT      Address that the exporter binds to.
+	  -p, --port INTEGER      Port that the exporter binds to.
+	  -i, --interval INTEGER  Minimal interval between two queries to Kea in
+	                          seconds.
+	  --client-cert PATH      Path to client certificate used to in HTTP requests
+	  --client-key PATH       Path to client key used in HTTP requests
+	  --version               Show the version and exit.
+	  --help                  Show this message and exit.
 
 You can also configure the exporter using environment variables:
 
 ::
 
-   export MODE="http"
    export ADDRESS="0.0.0.0"
    export PORT="9547"
    export INTERVAL="7.5"
-   export TARGET="http://kea"
+   export TARGETS="http://router.example.com:8000"
    export CLIENT_CERT="/etc/kea-exporter/client.crt"
    export CLIENT_KEY="/etc/kea-exporter/client.key"
 

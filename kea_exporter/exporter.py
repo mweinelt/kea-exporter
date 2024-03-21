@@ -1,21 +1,21 @@
 import re
 import sys
-from enum import Enum
+from urllib.parse import urlparse
 
 import click
 from prometheus_client import Gauge
 
+from kea_exporter import DHCPVersion
+from kea_exporter.http import KeaHTTPClient
+from kea_exporter.uds import KeaSocketClient
 
-class BaseExporter:
-    class DHCPVersion(Enum):
-        DHCP4 = 1
-        DHCP6 = 2
 
+class Exporter:
     subnet_pattern = re.compile(
         r"^subnet\[(?P<subnet_id>[\d]+)\]\.(pool\[(?P<pool_index>[\d]+)\]\.(?P<pool_metric>[\w-]+)|(?P<subnet_metric>[\w-]+))$"
     )
 
-    def __init__(self):
+    def __init__(self, targets, **kwargs):
         # prometheus
         self.prefix = "kea"
         self.prefix_dhcp4 = f"{self.prefix}_dhcp4"
@@ -38,9 +38,32 @@ class BaseExporter:
 
         # track missing info, to notify only once
         self.subnet_missing_info_sent = {
-            self.DHCPVersion.DHCP4: [],
-            self.DHCPVersion.DHCP6: [],
+            DHCPVersion.DHCP4: [],
+            DHCPVersion.DHCP6: [],
         }
+
+        self.targets = []
+        for target in targets:
+            url = urlparse(target)
+            client = None
+            try:
+                if url.scheme:
+                    client = KeaHTTPClient(target, **kwargs)
+                elif url.path:
+                    client = KeaSocketClient(target, **kwargs)
+                else:
+                    click.echo(f"Unable to parse target argument: {target}")
+                    continue
+            except OSError as ex:
+                click.echo(ex)
+                continue
+
+            self.targets.append(client)
+
+    def update(self):
+        for target in self.targets:
+            for response in target.stats():
+                self.parse_metrics(*response)
 
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
@@ -451,10 +474,10 @@ class BaseExporter:
 
     def parse_metrics(self, dhcp_version, arguments, subnets):
         for key, data in arguments.items():
-            if dhcp_version is self.DHCPVersion.DHCP4:
+            if dhcp_version is DHCPVersion.DHCP4:
                 if key in self.metrics_dhcp4_global_ignore:
                     continue
-            elif dhcp_version is self.DHCPVersion.DHCP6:
+            elif dhcp_version is DHCPVersion.DHCP6:
                 if key in self.metrics_dhcp6_global_ignore:
                     continue
             else:
@@ -470,13 +493,13 @@ class BaseExporter:
                 pool_metric = subnet_match.group("pool_metric")
                 subnet_metric = subnet_match.group("subnet_metric")
 
-                if dhcp_version is self.DHCPVersion.DHCP4:
+                if dhcp_version is DHCPVersion.DHCP4:
                     if (
                         pool_metric in self.metric_dhcp4_subnet_ignore
                         or subnet_metric in self.metric_dhcp4_subnet_ignore
                     ):
                         continue
-                elif dhcp_version is self.DHCPVersion.DHCP6:
+                elif dhcp_version is DHCPVersion.DHCP6:
                     if (
                         pool_metric in self.metric_dhcp6_subnet_ignore
                         or subnet_metric in self.metric_dhcp6_subnet_ignore
@@ -521,10 +544,10 @@ class BaseExporter:
                     key = subnet_metric
                     labels["pool"] = ""
 
-            if dhcp_version is self.DHCPVersion.DHCP4:
+            if dhcp_version is DHCPVersion.DHCP4:
                 metrics_map = self.metrics_dhcp4_map
                 metrics = self.metrics_dhcp4
-            elif dhcp_version is self.DHCPVersion.DHCP6:
+            elif dhcp_version is DHCPVersion.DHCP6:
                 metrics_map = self.metrics_dhcp6_map
                 metrics = self.metrics_dhcp6
             else:

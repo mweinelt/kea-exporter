@@ -5,26 +5,19 @@ import sys
 
 import click
 
-from .base_exporter import BaseExporter
+from kea_exporter import DHCPVersion
 
 
-class KeaSocket:
-    def __init__(self, sock_path):
-        try:
-            if not os.access(sock_path, os.F_OK):
-                raise FileNotFoundError()
-            if not os.access(sock_path, os.R_OK | os.W_OK):
-                raise PermissionError()
-            self.sock_path = os.path.abspath(sock_path)
-        except FileNotFoundError:
-            click.echo(
-                f"Socket at {sock_path} does not exist. Is Kea running?",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-        except PermissionError:
-            click.echo(f"Socket at {sock_path} is not read-/writeable.", file=sys.stderr)
-            sys.exit(1)
+class KeaSocketClient:
+    def __init__(self, sock_path, **kwargs):
+        super().__init__()
+
+        if not os.access(sock_path, os.F_OK):
+            raise FileNotFoundError(f"Unix domain socket does not exist at {sock_path}")
+        if not os.access(sock_path, os.R_OK | os.W_OK):
+            raise PermissionError(f"No read/write permissions on Unix domain socket at {sock_path}")
+
+        self.sock_path = os.path.abspath(sock_path)
 
         self.version = None
         self.config = None
@@ -48,16 +41,18 @@ class KeaSocket:
         # unfortunately we're reloading more often now as a workaround.
         self.reload()
 
-        return self.query("statistic-get-all")
+        arguments = self.query("statistic-get-all").get("arguments", {})
+
+        yield self.dhcp_version, arguments, self.subnets
 
     def reload(self):
         self.config = self.query("config-get")["arguments"]
 
         if "Dhcp4" in self.config:
-            self.dhcp_version = BaseExporter.DHCPVersion.DHCP4
+            self.dhcp_version = DHCPVersion.DHCP4
             subnets = self.config["Dhcp4"]["subnet4"]
         elif "Dhcp6" in self.config:
-            self.dhcp_version = BaseExporter.DHCPVersion.DHCP6
+            self.dhcp_version = DHCPVersion.DHCP6
             subnets = self.config["Dhcp6"]["subnet6"]
         else:
             click.echo(
@@ -68,15 +63,3 @@ class KeaSocket:
 
         # create subnet map
         self.subnets = {subnet["id"]: subnet for subnet in subnets}
-
-
-class KeaSocketExporter(BaseExporter):
-    def __init__(self, sockets, **kwargs):
-        super().__init__()
-
-        # kea instances
-        self.kea_instances = [KeaSocket(socket) for socket in sockets]
-
-    def update(self):
-        for kea in self.kea_instances:
-            self.parse_metrics(kea.dhcp_version, kea.stats().get("arguments"), kea.subnets)

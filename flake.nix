@@ -16,7 +16,7 @@
             src = ./.;
             hooks = {
               isort.enable = true;
-              ruff.enable = false;
+              ruff.enable = true;
               ruff-format = {
                 enable = true;
                 entry = "${pkgs.ruff}/bin/ruff format";
