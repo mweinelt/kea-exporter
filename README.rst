@@ -26,6 +26,7 @@ Installation
 
 .. image:: https://repology.org/badge/vertical-allrepos/kea-exporter.svg
    :alt: Package versions via repology.org
+   :target: https://repology.org/project/kea-exporter/versions
 
 The latest stable version can always be installed from PyPi:
 
