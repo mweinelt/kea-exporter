@@ -1,3 +1,7 @@
+0.7.0
+ - Accept Unix Domain Socket paths and HTTP Control-Agent URLS as arguments
+ - The `TARGET` environment variable has been renamed to `TARGETS`
+
 0.6.2
  - Repurpose interval to serve as a minimal time between querying Kea
  - Require `prometheus-client>=0.20`
