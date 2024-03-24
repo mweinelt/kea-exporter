@@ -3,12 +3,11 @@ import sys
 from urllib.parse import urlparse
 
 import click
-from prometheus_client import Gauge, Counter, disable_created_metrics
+from prometheus_client import Counter, Gauge, disable_created_metrics
 
 from kea_exporter import DHCPVersion
 from kea_exporter.http import KeaHTTPClient
 from kea_exporter.uds import KeaSocketClient
-
 
 disable_created_metrics()
 
