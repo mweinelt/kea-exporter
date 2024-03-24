@@ -3,11 +3,14 @@ import sys
 from urllib.parse import urlparse
 
 import click
-from prometheus_client import Gauge
+from prometheus_client import Gauge, Counter, disable_created_metrics
 
 from kea_exporter import DHCPVersion
 from kea_exporter.http import KeaHTTPClient
 from kea_exporter.uds import KeaSocketClient
+
+
+disable_created_metrics()
 
 
 class Exporter:
@@ -68,14 +71,14 @@ class Exporter:
     def setup_dhcp4_metrics(self):
         self.metrics_dhcp4 = {
             # Packets
-            "sent_packets": Gauge(f"{self.prefix_dhcp4}_packets_sent_total", "Packets sent", ["operation"]),
-            "received_packets": Gauge(
+            "sent_packets": Counter(f"{self.prefix_dhcp4}_packets_sent_total", "Packets sent", ["operation"]),
+            "received_packets": Counter(
                 f"{self.prefix_dhcp4}_packets_received_total",
                 "Packets received",
                 ["operation"],
             ),
             # per Subnet or Subnet pool
-            "addresses_allocation_fail": Gauge(
+            "addresses_allocation_fail": Counter(
                 f"{self.prefix_dhcp4}_allocations_failed_total",
                 "Allocation fail count",
                 [
@@ -94,12 +97,12 @@ class Exporter:
                 "Declined counts",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "addresses_declined_reclaimed_total": Gauge(
+            "addresses_declined_reclaimed_total": Counter(
                 f"{self.prefix_dhcp4}_addresses_declined_reclaimed_total",
                 "Declined addresses that were reclaimed",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "addresses_reclaimed_total": Gauge(
+            "addresses_reclaimed_total": Counter(
                 f"{self.prefix_dhcp4}_addresses_reclaimed_total",
                 "Expired addresses that were reclaimed",
                 ["subnet", "subnet_id", "pool"],
@@ -109,7 +112,7 @@ class Exporter:
                 "Size of subnet address pool",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "reservation_conflicts_total": Gauge(
+            "reservation_conflicts_total": Counter(
                 f"{self.prefix_dhcp4}_reservation_conflicts_total",
                 "Reservation conflict count",
                 ["subnet", "subnet_id"],
@@ -246,25 +249,25 @@ class Exporter:
     def setup_dhcp6_metrics(self):
         self.metrics_dhcp6 = {
             # Packets sent/received
-            "sent_packets": Gauge(f"{self.prefix_dhcp6}_packets_sent_total", "Packets sent", ["operation"]),
-            "received_packets": Gauge(
+            "sent_packets": Counter(f"{self.prefix_dhcp6}_packets_sent_total", "Packets sent", ["operation"]),
+            "received_packets": Counter(
                 f"{self.prefix_dhcp6}_packets_received_total",
                 "Packets received",
                 ["operation"],
             ),
             # DHCPv4-over-DHCPv6
-            "sent_dhcp4_packets": Gauge(
+            "sent_dhcp4_packets": Counter(
                 f"{self.prefix_dhcp6}_packets_sent_dhcp4_total",
-                "DHCPv4-over-DHCPv6 Packets received",
+                "DHCPv4-over-DHCPv6 Packets sent",
                 ["operation"],
             ),
-            "received_dhcp4_packets": Gauge(
+            "received_dhcp4_packets": Counter(
                 f"{self.prefix_dhcp6}_packets_received_dhcp4_total",
                 "DHCPv4-over-DHCPv6 Packets received",
                 ["operation"],
             ),
             # per Subnet or pool
-            "addresses_allocation_fail": Gauge(
+            "addresses_allocation_fail": Counter(
                 f"{self.prefix_dhcp6}_allocations_failed_total",
                 "Allocation fail count",
                 [
@@ -278,17 +281,17 @@ class Exporter:
                 "Declined addresses",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "addresses_declined_reclaimed_total": Gauge(
+            "addresses_declined_reclaimed_total": Counter(
                 f"{self.prefix_dhcp6}_addresses_declined_reclaimed_total",
                 "Declined addresses that were reclaimed",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "addresses_reclaimed_total": Gauge(
+            "addresses_reclaimed_total": Counter(
                 f"{self.prefix_dhcp6}_addresses_reclaimed_total",
                 "Expired addresses that were reclaimed",
                 ["subnet", "subnet_id", "pool"],
             ),
-            "reservation_conflicts_total": Gauge(
+            "reservation_conflicts_total": Counter(
                 f"{self.prefix_dhcp6}_reservation_conflicts_total",
                 "Reservation conflict count",
                 ["subnet", "subnet_id"],
@@ -572,4 +575,16 @@ class Exporter:
             labels = {key: val for key, val in labels.items() if key in metric._labelnames}
 
             # export labels and value
-            metric.labels(**labels).set(value)
+            if isinstance(metric, Gauge):
+                metric.labels(**labels).set(value)
+            else:
+                current_value = metric.labels(**labels)._value.get()
+
+                # Attempt to handle counter resets (may not catch all cases)
+                # e.g resetting the metric with kea command, let the metric grow to its previous value, query the statistics
+                if value < current_value:
+                    current_value = 0
+                    metric.labels(**labels).reset()
+
+                if value > current_value:
+                    metric.labels(**labels).inc(value - current_value)
