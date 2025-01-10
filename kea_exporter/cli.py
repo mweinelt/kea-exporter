@@ -1,23 +1,16 @@
+import logging
 import sys
 import time
 
 import click
-from prometheus_client import REGISTRY, make_wsgi_app, start_http_server
+from prometheus_client import start_http_server
+from prometheus_client.core import REGISTRY
 
 from kea_exporter import __project__, __version__
-from kea_exporter.exporter import Exporter
+from kea_exporter.collector import KeaCollector
+from kea_exporter.exporter import KeaExporter
 
-
-class Timer:
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.start_time = time.time()
-
-    def time_elapsed(self):
-        now_time = time.time()
-        return now_time - self.start_time
+logger = logging.getLogger(__name__)
 
 
 @click.command()
@@ -38,12 +31,13 @@ class Timer:
     help="Port that the exporter binds to.",
 )
 @click.option(
-    "-i",
-    "--interval",
-    envvar="INTERVAL",
-    type=int,
-    default=0,
-    help="Minimal interval between two queries to Kea in seconds.",
+    "-d",
+    "--debug",
+    envvar="DEBUG",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Run kea_exporter in debug mode.",
 )
 @click.option(
     "--client-cert",
@@ -61,31 +55,24 @@ class Timer:
 )
 @click.argument("targets", envvar="TARGETS", nargs=-1, required=True)
 @click.version_option(prog_name=__project__, version=__version__)
-def cli(port, address, interval, **kwargs):
-    exporter = Exporter(**kwargs)
+def cli(port, address, debug, **kwargs):
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    exporter = KeaExporter(**kwargs)
+
+    start_http_server(port, address)
 
     if not exporter.targets:
         sys.exit(1)
 
-    httpd, _ = start_http_server(port, address)
+    collector = KeaCollector(exporter)
 
-    t = Timer()
+    REGISTRY.register(collector)
 
-    def local_wsgi_app(registry):
-        func = make_wsgi_app(registry, False)
-
-        def app(environ, start_response):
-            if t.time_elapsed() >= interval:
-                exporter.update()
-                t.reset()
-            output_array = func(environ, start_response)
-            return output_array
-
-        return app
-
-    httpd.set_app(local_wsgi_app(REGISTRY))
-
-    click.echo(f"Listening on http://{address}:{port}")
+    logger.info(f"Listening on http://{address}:{port}")
 
     while True:
         time.sleep(1)

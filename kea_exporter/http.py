@@ -19,9 +19,10 @@ class KeaHTTPClient:
         self.modules = []
         self.subnets = {}
         self.subnets6 = {}
+        self.server_tag = ""
 
         self.load_modules()
-        self.load_subnets()
+        self.load_config()
 
     def load_modules(self):
         r = requests.post(
@@ -35,7 +36,7 @@ class KeaHTTPClient:
             if "dhcp" in module:  # Does not support d2 metrics. # Does not handle ctrl sockets that are offline
                 self.modules.append(module)
 
-    def load_subnets(self):
+    def load_config(self):
         r = requests.post(
             self._target,
             cert=self._cert,
@@ -43,15 +44,21 @@ class KeaHTTPClient:
             headers={"Content-Type": "application/json"},
         )
         config = r.json()
+
         for module in config:
-            for subnet in module.get("arguments", {}).get("Dhcp4", {}).get("subnet4", {}):
-                self.subnets.update({subnet["id"]: subnet})
-            for subnet in module.get("arguments", {}).get("Dhcp6", {}).get("subnet6", {}):
-                self.subnets6.update({subnet["id"]: subnet})
+            dhcp4_config = module.get("arguments", {}).get("Dhcp4", None)
+
+            if dhcp4_config:
+                self.subnets = dhcp4_config.get("subnet4")
+                self.server_tag = dhcp4_config.get("server-tag", "")
+            dhcp6_config = module.get("arguments", {}).get("Dhcp6", None)
+            if dhcp6_config:
+                self.subnets6 = dhcp6_config.get("subnet6", {})
+                self.server_tag = dhcp6_config.get("server-tag", "")
 
     def stats(self):
-        # Reload subnets on update in case of configurational update
-        self.load_subnets()
+        # Reload config on update in case of a configurational update
+        self.load_config()
         # Note for future testing: pipe curl output to jq for an easier read
         r = requests.post(
             self._target,
@@ -77,4 +84,4 @@ class KeaHTTPClient:
 
             arguments = response[index].get("arguments", {})
 
-            yield dhcp_version, arguments, subnets
+            yield self._target, self.server_tag, dhcp_version, arguments, subnets

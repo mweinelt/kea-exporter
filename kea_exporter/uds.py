@@ -1,11 +1,12 @@
 import json
+import logging
 import os
 import socket
 import sys
 
-import click
-
 from kea_exporter import DHCPVersion
+
+logger = logging.getLogger(__name__)
 
 
 class KeaSocketClient:
@@ -19,10 +20,8 @@ class KeaSocketClient:
 
         self.sock_path = os.path.abspath(sock_path)
 
-        self.version = None
-        self.config = None
         self.subnets = None
-        self.subnet_missing_info_sent = []
+        self.server_tag = ""
         self.dhcp_version = None
 
     def query(self, command):
@@ -43,23 +42,22 @@ class KeaSocketClient:
 
         arguments = self.query("statistic-get-all").get("arguments", {})
 
-        yield self.dhcp_version, arguments, self.subnets
+        yield self.sock_path, self.server_tag, self.dhcp_version, arguments, self.subnets
 
     def reload(self):
-        self.config = self.query("config-get")["arguments"]
+        config = self.query("config-get").get("arguments", {})
 
-        if "Dhcp4" in self.config:
+        if "Dhcp4" in config:
             self.dhcp_version = DHCPVersion.DHCP4
-            subnets = self.config["Dhcp4"]["subnet4"]
-        elif "Dhcp6" in self.config:
+            subnets = config.get("Dhcp4", {}).get("subnet4", [])
+            self.server_tag = config.get("Dhcp4", {}).get("server-tag", "")
+        elif "Dhcp6" in config:
             self.dhcp_version = DHCPVersion.DHCP6
-            subnets = self.config["Dhcp6"]["subnet6"]
+            subnets = config.get("Dhcp6", {}).get("subnet6", [])
+            self.server_tag = config.get("Dhcp6", {}).get("server-tag", "")
         else:
-            click.echo(
+            logging.error(
                 f"Socket {self.sock_path} has no supported configuration",
-                file=sys.stderr,
             )
             sys.exit(1)
-
-        # create subnet map
-        self.subnets = {subnet["id"]: subnet for subnet in subnets}
+        self.subnets = subnets
