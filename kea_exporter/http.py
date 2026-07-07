@@ -77,4 +77,4 @@ class KeaHTTPClient:
 
             arguments = response[index].get("arguments", {})
 
-            yield dhcp_version, arguments, subnets
+            yield self._target, dhcp_version, arguments, subnets

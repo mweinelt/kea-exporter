@@ -43,7 +43,7 @@ class KeaSocketClient:
 
         arguments = self.query("statistic-get-all").get("arguments", {})
 
-        yield self.dhcp_version, arguments, self.subnets
+        yield self.sock_path, self.dhcp_version, arguments, self.subnets
 
     def reload(self):
         self.config = self.query("config-get")["arguments"]
