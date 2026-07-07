@@ -224,6 +224,7 @@ class Exporter:
             # metrics that exist at the subnet level in more detail
             "cumulative-assigned-addresses",
             "declined-addresses",
+            "assigned-addresses",
             # sums of different packet types
             "reclaimed-declined-addresses",
             "reclaimed-leases",
@@ -448,6 +449,8 @@ class Exporter:
             # metrics that exist at the subnet level in more detail
             "cumulative-assigned-addresses",
             "declined-addresses",
+            "assigned-nas",
+            "assigned-pds",
             # sums of different packet types
             "cumulative-assigned-nas",
             "cumulative-assigned-pds",
