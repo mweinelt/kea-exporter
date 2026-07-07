@@ -53,7 +53,7 @@ A docker image is available and can be configured with environment variables see
 Features
 --------
 
-- DHCP4 & DHCP6 Metrics (tested against Kea 2.4.1)
+- DHCP4 & DHCP6 Metrics (tested against Kea 3.2.0)
 - Configuration and statistics via control socket or http api
 
 Currently not working:
