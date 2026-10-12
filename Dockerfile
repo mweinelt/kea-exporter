@@ -23,4 +23,6 @@ RUN pip install --user --no-cache-dir -e .
 
 EXPOSE 9547
 
+STOPSIGNAL SIGINT
+
 ENTRYPOINT ["kea-exporter"]
